@@ -1,0 +1,260 @@
+# Generated with protoc-gen-openapi
+# https://github.com/google/gnostic/tree/master/cmd/protoc-gen-openapi
+
+openapi: 3.0.3
+info:
+    title: User API
+    description: 用户服务定义
+    version: 0.0.1
+paths:
+    /admin/v1/users:
+        get:
+            tags:
+                - User
+            description: 用户列表
+            operationId: User_ListUsers
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: account
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListUsersReply'
+        post:
+            tags:
+                - User
+            description: 创建用户
+            operationId: User_CreateUser
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateUserRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CreateUserReply'
+    /admin/v1/users/{id}:
+        get:
+            tags:
+                - User
+            description: 获取用户信息
+            operationId: User_GetUser
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetUserReply'
+        put:
+            tags:
+                - User
+            description: 更新用户信息
+            operationId: User_UpdateUser
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpdateUserRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpdateUserReply'
+        delete:
+            tags:
+                - User
+            description: 删除用户
+            operationId: User_DeleteUser
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/DeleteUserReply'
+components:
+    schemas:
+        CreateUserReply:
+            type: object
+            properties:
+                user:
+                    $ref: '#/components/schemas/UserInfo'
+            description: 创建用户响应
+        CreateUserRequest:
+            type: object
+            properties:
+                account:
+                    type: string
+                password:
+                    type: string
+                nickname:
+                    type: string
+                remark:
+                    type: string
+                deptId:
+                    type: string
+                postIds:
+                    type: string
+                email:
+                    type: string
+                mobile:
+                    type: string
+                sex:
+                    type: integer
+                    format: int32
+                avatar:
+                    type: string
+                loginIp:
+                    type: string
+                loginDate:
+                    type: string
+                tenantId:
+                    type: string
+            description: 创建用户请求
+        DeleteUserReply:
+            type: object
+            properties:
+                success:
+                    type: boolean
+            description: 删除用户响应
+        GetUserReply:
+            type: object
+            properties:
+                user:
+                    $ref: '#/components/schemas/UserInfo'
+            description: 获取用户响应
+        ListUsersReply:
+            type: object
+            properties:
+                users:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/UserInfo'
+                total:
+                    type: integer
+                    format: int32
+            description: 用户列表响应
+        UpdateUserReply:
+            type: object
+            properties:
+                user:
+                    $ref: '#/components/schemas/UserInfo'
+            description: 更新用户响应
+        UpdateUserRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                nickname:
+                    type: string
+                remark:
+                    type: string
+                deptId:
+                    type: string
+                postIds:
+                    type: string
+                email:
+                    type: string
+                mobile:
+                    type: string
+                sex:
+                    type: integer
+                    format: int32
+                avatar:
+                    type: string
+                status:
+                    type: integer
+                    format: int32
+                loginIp:
+                    type: string
+                loginDate:
+                    type: string
+                tenantId:
+                    type: string
+            description: 更新用户请求
+        UserInfo:
+            type: object
+            properties:
+                id:
+                    type: string
+                account:
+                    type: string
+                nickname:
+                    type: string
+                remark:
+                    type: string
+                deptId:
+                    type: string
+                postIds:
+                    type: string
+                email:
+                    type: string
+                mobile:
+                    type: string
+                sex:
+                    type: integer
+                    format: int32
+                avatar:
+                    type: string
+                status:
+                    type: integer
+                    format: int32
+                loginIp:
+                    type: string
+                loginDate:
+                    type: string
+                tenantId:
+                    type: string
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+                createdBy:
+                    type: string
+                updatedBy:
+                    type: string
+            description: 用户信息
+tags:
+    - name: User

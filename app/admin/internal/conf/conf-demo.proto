@@ -1,0 +1,15 @@
+syntax = "proto3";
+package kratos.api;
+
+option go_package = "kva/internal/conf;conf";
+
+
+
+message Demo {
+  Some some = 1;
+}
+
+message Some {
+  string thing = 1;
+}
+

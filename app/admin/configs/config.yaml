@@ -1,0 +1,50 @@
+env:
+  active: dev
+server:
+  http:
+    addr: 0.0.0.0:8346
+    timeout: 30
+  grpc:
+    addr: 0.0.0.0:9346
+    timeout: 5
+data:
+  database:
+    driver: mysql
+    source: root:123456@tcp(127.0.0.1:3306)/kva?parseTime=True&loc=Local
+    max_idle_conns: 20
+    max_open_conns: 100
+    conn_max_lifetime: 3600
+  redis:
+    addr: 127.0.0.1:6379
+    read_timeout: 1
+    write_timeout: 1
+    password: ""
+    db: 0
+    pool_size: 50
+    min_idle_conns: 10
+log:
+  level: "info"
+  filename: "logs/kva/info.log"
+  maxSize: 5
+  maxAge: 30
+  maxBackups: 30
+  stdout: true
+
+snowflake:
+  BaseTime: 1735660800000 # 2025-01-01 00:00:00
+  WorkerIdBitLength: 6
+  SeqBitLength: 6
+  MaxSeqNumber: 0
+  MinSeqNumber: 5
+  LockKey: "kva:globalid:workerid:lock"
+  WorkerIdKey: "kva:globalid:workerid:"
+  WorkerIdIndexKey: "kva:globalid:workerid:idnex"
+jwt:
+  system:
+    secret: "FC46440390154E489B47E051D25727E29466AA30BA2B4DACAB474CEA75A1B980"
+    expire: 28800  # 8小时
+  client:
+    secret: "39E13BE51A374EC2A2DA3BA5CE0154F73C16820D1C7F4994A34C4AAA6765A143"
+    expire: 259200 # 30天
+
+

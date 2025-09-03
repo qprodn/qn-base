@@ -1,0 +1,85 @@
+syntax = "proto3";
+package kratos.api;
+
+option go_package = "kva/internal/conf;conf";
+
+
+message Bootstrap {
+  Env env = 1;
+  Server server = 2;
+  Data data = 3;
+  Log log = 4;
+  Snowflake snowflake = 5;
+  Jwt jwt = 6;
+}
+
+message Env {
+  string active = 1;
+}
+
+message Server {
+  message HTTP {
+    string network = 1;
+    string addr = 2;
+    int32 timeout = 3;
+  }
+  message GRPC {
+    string network = 1;
+    string addr = 2;
+    int32 timeout = 3;
+  }
+  HTTP http = 1;
+  GRPC grpc = 2;
+}
+
+message Data {
+  message Database {
+    string driver = 1;
+    string source = 2;
+    int32 max_idle_conns = 5;
+    int32 max_open_conns = 6;
+    int32 conn_max_lifetime = 7;
+  }
+  message Redis {
+    string network = 1;
+    string addr = 2;
+    int32 read_timeout = 3;
+    int32 write_timeout = 4;
+    string password = 5;
+    int32 db = 6;
+    int32 pool_size = 7;
+    int32 min_idle_conns = 8;
+  }
+  Database database = 1;
+  Redis redis = 2;
+}
+
+message Log {
+  string level = 1;
+  string filename = 2;
+  int32 maxSize = 3;
+  int32 maxAge = 4;
+  int32 maxBackups = 5;
+  bool stdout = 6;
+}
+
+message Snowflake {
+  int64 BaseTime = 1;         // 基础时间（ms单位），不能超过当前系统时间
+  int32 WorkerIdBitLength = 2;  // 机器码位长，默认值6，取值范围 [1, 15]（要求：序列数位长+机器码位长不超过22）
+  int32 SeqBitLength = 3;  // 序列数位长，默认值6，取值范围 [3, 21]（要求：序列数位长+机器码位长不超过22）
+  int32 MaxSeqNumber = 4;// 最大序列数（含），设置范围 [MinSeqNumber, 2^SeqBitLength-1]，默认值0，表示最大序列数取最大值（2^SeqBitLength-1]）
+  int32 MinSeqNumber = 5;// 最小序列数（含），默认值5，取值范围 [5, MaxSeqNumber]，每毫秒的前5个序列数对应编号0-4是保留位，其中1-4是时间回拨相应预留位，0是手工新值预留位
+
+  string LockKey = 6;
+  string WorkerIdKey = 7;
+  string WorkerIdIndexKey = 8;
+}
+
+message Jwt{
+  message Param {
+    string secret = 1;
+    int32 expire = 2;
+  }
+  Param system = 1;
+  Param client = 2;
+}

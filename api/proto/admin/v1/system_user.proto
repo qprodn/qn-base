@@ -1,0 +1,152 @@
+
+
+syntax = "proto3";
+
+package admin.v1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "qn-base/api/admin/v1;v1";
+option java_multiple_files = true;
+option java_package = "dev.kratos.api.admin.v1";
+option java_outer_classname = "AdminProtoV1";
+
+// 用户服务定义
+service User {
+  // 创建用户
+  rpc CreateUser (CreateUserRequest) returns (CreateUserReply) {
+    option (google.api.http) = {
+      post: "/admin/v1/users"
+      body: "*"
+    };
+  }
+
+  // 获取用户信息
+  rpc GetUser (GetUserRequest) returns (GetUserReply) {
+    option (google.api.http) = {
+      get: "/admin/v1/users/{id}"
+    };
+  }
+
+  // 更新用户信息
+  rpc UpdateUser (UpdateUserRequest) returns (UpdateUserReply) {
+    option (google.api.http) = {
+      put: "/admin/v1/users/{id}"
+      body: "*"
+    };
+  }
+
+  // 删除用户
+  rpc DeleteUser (DeleteUserRequest) returns (DeleteUserReply) {
+    option (google.api.http) = {
+      delete: "/admin/v1/users/{id}"
+    };
+  }
+
+  // 用户列表
+  rpc ListUsers (ListUsersRequest) returns (ListUsersReply) {
+    option (google.api.http) = {
+      get: "/admin/v1/users"
+    };
+  }
+}
+
+// 用户信息
+message UserInfo {
+  string id = 1;
+  string account = 2;
+  string nickname = 3;
+  string remark = 4;
+  string dept_id = 5;
+  string post_ids = 6;
+  string email = 7;
+  string mobile = 8;
+  int32 sex = 9;
+  string avatar = 10;
+  int32 status = 11;
+  string login_ip = 12;
+  string login_date = 13;
+  string tenant_id = 19;
+  string created_at = 20;
+  string updated_at = 21;
+  string created_by = 22;
+  string updated_by = 23;
+}
+
+// 创建用户请求
+message CreateUserRequest {
+  optional string account = 1;
+  optional string password = 2;
+  optional string nickname = 3;
+  optional string remark = 4;
+  optional string dept_id = 5;
+  optional string post_ids = 6;
+  optional string email = 7;
+  optional string mobile = 8;
+  optional int32 sex = 9;
+  optional string avatar = 10;
+  optional string login_ip = 11;
+  optional string login_date = 12;
+  optional string tenant_id = 15;
+}
+
+// 创建用户响应
+message CreateUserReply {
+  UserInfo user = 1;
+}
+
+// 获取用户请求
+message GetUserRequest {
+  optional string id = 1;
+}
+
+// 获取用户响应
+message GetUserReply {
+  UserInfo user = 1;
+}
+
+// 更新用户请求
+message UpdateUserRequest {
+  optional string id = 1;
+  optional string nickname = 2;
+  optional string remark = 3;
+  optional string dept_id = 4;
+  optional string post_ids = 5;
+  optional string email = 6;
+  optional string mobile = 7;
+  optional int32 sex = 8;
+  optional string avatar = 9;
+  optional int32 status = 10;
+  optional string login_ip = 11;
+  optional string login_date = 12;
+  optional string tenant_id = 14;
+}
+
+// 更新用户响应
+message UpdateUserReply {
+  UserInfo user = 1;
+}
+
+// 删除用户请求
+message DeleteUserRequest {
+  string id = 1;
+}
+
+// 删除用户响应
+message DeleteUserReply {
+  bool success = 1;
+}
+
+// 用户列表请求
+message ListUsersRequest {
+  optional int32 page = 1;
+  optional int32 page_size = 2;
+  optional string account = 3;
+}
+
+// 用户列表响应
+message ListUsersReply {
+  repeated UserInfo users = 1;
+  int32 total = 2;
+}
