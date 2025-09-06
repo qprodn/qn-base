@@ -258,7 +258,7 @@ func (c *SystemUserClient) UpdateOne(_m *SystemUser) *SystemUserUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *SystemUserClient) UpdateOneID(id int) *SystemUserUpdateOne {
+func (c *SystemUserClient) UpdateOneID(id string) *SystemUserUpdateOne {
 	mutation := newSystemUserMutation(c.config, OpUpdateOne, withSystemUserID(id))
 	return &SystemUserUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -275,7 +275,7 @@ func (c *SystemUserClient) DeleteOne(_m *SystemUser) *SystemUserDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *SystemUserClient) DeleteOneID(id int) *SystemUserDeleteOne {
+func (c *SystemUserClient) DeleteOneID(id string) *SystemUserDeleteOne {
 	builder := c.Delete().Where(systemuser.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -292,12 +292,12 @@ func (c *SystemUserClient) Query() *SystemUserQuery {
 }
 
 // Get returns a SystemUser entity by its id.
-func (c *SystemUserClient) Get(ctx context.Context, id int) (*SystemUser, error) {
+func (c *SystemUserClient) Get(ctx context.Context, id string) (*SystemUser, error) {
 	return c.Query().Where(systemuser.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *SystemUserClient) GetX(ctx context.Context, id int) *SystemUser {
+func (c *SystemUserClient) GetX(ctx context.Context, id string) *SystemUser {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -307,12 +307,14 @@ func (c *SystemUserClient) GetX(ctx context.Context, id int) *SystemUser {
 
 // Hooks returns the client hooks.
 func (c *SystemUserClient) Hooks() []Hook {
-	return c.hooks.SystemUser
+	hooks := c.hooks.SystemUser
+	return append(hooks[:len(hooks):len(hooks)], systemuser.Hooks[:]...)
 }
 
 // Interceptors returns the client interceptors.
 func (c *SystemUserClient) Interceptors() []Interceptor {
-	return c.inters.SystemUser
+	inters := c.inters.SystemUser
+	return append(inters[:len(inters):len(inters)], systemuser.Interceptors[:]...)
 }
 
 func (c *SystemUserClient) mutate(ctx context.Context, m *SystemUserMutation) (Value, error) {

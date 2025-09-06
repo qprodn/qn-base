@@ -3,6 +3,7 @@
 package systemuser
 
 import (
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -87,13 +88,22 @@ func ValidColumn(column string) bool {
 	return false
 }
 
+// Note that the variables below are initialized by the runtime
+// package on the initialization of the application. Therefore,
+// it should be imported in the main as follows:
+//
+//	import _ "qn-base/app/admin/internal/data/ent/runtime"
 var (
+	Hooks        [1]ent.Hook
+	Interceptors [1]ent.Interceptor
 	// TenantIDValidator is a validator for the "tenant_id" field. It is called by the builders before save.
 	TenantIDValidator func(string) error
 	// DefaultSex holds the default value on creation for the "sex" field.
 	DefaultSex int8
 	// DefaultStatus holds the default value on creation for the "status" field.
 	DefaultStatus int8
+	// IDValidator is a validator for the "id" field. It is called by the builders before save.
+	IDValidator func(string) error
 )
 
 // OrderOption defines the ordering options for the SystemUser queries.

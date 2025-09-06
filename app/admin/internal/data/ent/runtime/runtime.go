@@ -2,7 +2,43 @@
 
 package runtime
 
-// The schema-stitching logic is generated in qn-base/app/admin/internal/data/ent/runtime.go
+import (
+	"qn-base/app/admin/internal/data/ent/schema"
+	"qn-base/app/admin/internal/data/ent/systemuser"
+)
+
+// The init function reads all schema descriptors with runtime code
+// (default values, validators, hooks and policies) and stitches it
+// to their package variables.
+func init() {
+	systemuserMixin := schema.SystemUser{}.Mixin()
+	systemuserMixinHooks5 := systemuserMixin[5].Hooks()
+	systemuser.Hooks[0] = systemuserMixinHooks5[0]
+	systemuserMixinInters5 := systemuserMixin[5].Interceptors()
+	systemuser.Interceptors[0] = systemuserMixinInters5[0]
+	systemuserMixinFields0 := systemuserMixin[0].Fields()
+	_ = systemuserMixinFields0
+	systemuserMixinFields6 := systemuserMixin[6].Fields()
+	_ = systemuserMixinFields6
+	systemuserFields := schema.SystemUser{}.Fields()
+	_ = systemuserFields
+	// systemuserDescTenantID is the schema descriptor for tenant_id field.
+	systemuserDescTenantID := systemuserMixinFields6[0].Descriptor()
+	// systemuser.TenantIDValidator is a validator for the "tenant_id" field. It is called by the builders before save.
+	systemuser.TenantIDValidator = systemuserDescTenantID.Validators[0].(func(string) error)
+	// systemuserDescSex is the schema descriptor for sex field.
+	systemuserDescSex := systemuserFields[8].Descriptor()
+	// systemuser.DefaultSex holds the default value on creation for the sex field.
+	systemuser.DefaultSex = systemuserDescSex.Default.(int8)
+	// systemuserDescStatus is the schema descriptor for status field.
+	systemuserDescStatus := systemuserFields[10].Descriptor()
+	// systemuser.DefaultStatus holds the default value on creation for the status field.
+	systemuser.DefaultStatus = systemuserDescStatus.Default.(int8)
+	// systemuserDescID is the schema descriptor for id field.
+	systemuserDescID := systemuserMixinFields0[0].Descriptor()
+	// systemuser.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	systemuser.IDValidator = systemuserDescID.Validators[0].(func(string) error)
+}
 
 const (
 	Version = "v0.14.5"                                         // Version of ent codegen.

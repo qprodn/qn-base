@@ -10,48 +10,58 @@ import (
 )
 
 // ID filters vertices based on their ID field.
-func ID(id int) predicate.SystemUser {
+func ID(id string) predicate.SystemUser {
 	return predicate.SystemUser(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id int) predicate.SystemUser {
+func IDEQ(id string) predicate.SystemUser {
 	return predicate.SystemUser(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id int) predicate.SystemUser {
+func IDNEQ(id string) predicate.SystemUser {
 	return predicate.SystemUser(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...int) predicate.SystemUser {
+func IDIn(ids ...string) predicate.SystemUser {
 	return predicate.SystemUser(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...int) predicate.SystemUser {
+func IDNotIn(ids ...string) predicate.SystemUser {
 	return predicate.SystemUser(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id int) predicate.SystemUser {
+func IDGT(id string) predicate.SystemUser {
 	return predicate.SystemUser(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id int) predicate.SystemUser {
+func IDGTE(id string) predicate.SystemUser {
 	return predicate.SystemUser(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id int) predicate.SystemUser {
+func IDLT(id string) predicate.SystemUser {
 	return predicate.SystemUser(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id int) predicate.SystemUser {
+func IDLTE(id string) predicate.SystemUser {
 	return predicate.SystemUser(sql.FieldLTE(FieldID, id))
+}
+
+// IDEqualFold applies the EqualFold predicate on the ID field.
+func IDEqualFold(id string) predicate.SystemUser {
+	return predicate.SystemUser(sql.FieldEqualFold(FieldID, id))
+}
+
+// IDContainsFold applies the ContainsFold predicate on the ID field.
+func IDContainsFold(id string) predicate.SystemUser {
+	return predicate.SystemUser(sql.FieldContainsFold(FieldID, id))
 }
 
 // CreateBy applies equality check predicate on the "create_by" field. It's identical to CreateByEQ.
@@ -105,7 +115,7 @@ func Remark(v string) predicate.SystemUser {
 }
 
 // DeptID applies equality check predicate on the "dept_id" field. It's identical to DeptIDEQ.
-func DeptID(v int64) predicate.SystemUser {
+func DeptID(v string) predicate.SystemUser {
 	return predicate.SystemUser(sql.FieldEQ(FieldDeptID, v))
 }
 
@@ -805,43 +815,58 @@ func RemarkContainsFold(v string) predicate.SystemUser {
 }
 
 // DeptIDEQ applies the EQ predicate on the "dept_id" field.
-func DeptIDEQ(v int64) predicate.SystemUser {
+func DeptIDEQ(v string) predicate.SystemUser {
 	return predicate.SystemUser(sql.FieldEQ(FieldDeptID, v))
 }
 
 // DeptIDNEQ applies the NEQ predicate on the "dept_id" field.
-func DeptIDNEQ(v int64) predicate.SystemUser {
+func DeptIDNEQ(v string) predicate.SystemUser {
 	return predicate.SystemUser(sql.FieldNEQ(FieldDeptID, v))
 }
 
 // DeptIDIn applies the In predicate on the "dept_id" field.
-func DeptIDIn(vs ...int64) predicate.SystemUser {
+func DeptIDIn(vs ...string) predicate.SystemUser {
 	return predicate.SystemUser(sql.FieldIn(FieldDeptID, vs...))
 }
 
 // DeptIDNotIn applies the NotIn predicate on the "dept_id" field.
-func DeptIDNotIn(vs ...int64) predicate.SystemUser {
+func DeptIDNotIn(vs ...string) predicate.SystemUser {
 	return predicate.SystemUser(sql.FieldNotIn(FieldDeptID, vs...))
 }
 
 // DeptIDGT applies the GT predicate on the "dept_id" field.
-func DeptIDGT(v int64) predicate.SystemUser {
+func DeptIDGT(v string) predicate.SystemUser {
 	return predicate.SystemUser(sql.FieldGT(FieldDeptID, v))
 }
 
 // DeptIDGTE applies the GTE predicate on the "dept_id" field.
-func DeptIDGTE(v int64) predicate.SystemUser {
+func DeptIDGTE(v string) predicate.SystemUser {
 	return predicate.SystemUser(sql.FieldGTE(FieldDeptID, v))
 }
 
 // DeptIDLT applies the LT predicate on the "dept_id" field.
-func DeptIDLT(v int64) predicate.SystemUser {
+func DeptIDLT(v string) predicate.SystemUser {
 	return predicate.SystemUser(sql.FieldLT(FieldDeptID, v))
 }
 
 // DeptIDLTE applies the LTE predicate on the "dept_id" field.
-func DeptIDLTE(v int64) predicate.SystemUser {
+func DeptIDLTE(v string) predicate.SystemUser {
 	return predicate.SystemUser(sql.FieldLTE(FieldDeptID, v))
+}
+
+// DeptIDContains applies the Contains predicate on the "dept_id" field.
+func DeptIDContains(v string) predicate.SystemUser {
+	return predicate.SystemUser(sql.FieldContains(FieldDeptID, v))
+}
+
+// DeptIDHasPrefix applies the HasPrefix predicate on the "dept_id" field.
+func DeptIDHasPrefix(v string) predicate.SystemUser {
+	return predicate.SystemUser(sql.FieldHasPrefix(FieldDeptID, v))
+}
+
+// DeptIDHasSuffix applies the HasSuffix predicate on the "dept_id" field.
+func DeptIDHasSuffix(v string) predicate.SystemUser {
+	return predicate.SystemUser(sql.FieldHasSuffix(FieldDeptID, v))
 }
 
 // DeptIDIsNil applies the IsNil predicate on the "dept_id" field.
@@ -852,6 +877,16 @@ func DeptIDIsNil() predicate.SystemUser {
 // DeptIDNotNil applies the NotNil predicate on the "dept_id" field.
 func DeptIDNotNil() predicate.SystemUser {
 	return predicate.SystemUser(sql.FieldNotNull(FieldDeptID))
+}
+
+// DeptIDEqualFold applies the EqualFold predicate on the "dept_id" field.
+func DeptIDEqualFold(v string) predicate.SystemUser {
+	return predicate.SystemUser(sql.FieldEqualFold(FieldDeptID, v))
+}
+
+// DeptIDContainsFold applies the ContainsFold predicate on the "dept_id" field.
+func DeptIDContainsFold(v string) predicate.SystemUser {
+	return predicate.SystemUser(sql.FieldContainsFold(FieldDeptID, v))
 }
 
 // PostIdsEQ applies the EQ predicate on the "post_ids" field.

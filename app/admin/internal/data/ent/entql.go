@@ -19,7 +19,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			Table:   systemuser.Table,
 			Columns: systemuser.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
+				Type:   field.TypeString,
 				Column: systemuser.FieldID,
 			},
 		},
@@ -35,7 +35,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			systemuser.FieldPassword:  {Type: field.TypeString, Column: systemuser.FieldPassword},
 			systemuser.FieldNickname:  {Type: field.TypeString, Column: systemuser.FieldNickname},
 			systemuser.FieldRemark:    {Type: field.TypeString, Column: systemuser.FieldRemark},
-			systemuser.FieldDeptID:    {Type: field.TypeInt64, Column: systemuser.FieldDeptID},
+			systemuser.FieldDeptID:    {Type: field.TypeString, Column: systemuser.FieldDeptID},
 			systemuser.FieldPostIds:   {Type: field.TypeString, Column: systemuser.FieldPostIds},
 			systemuser.FieldEmail:     {Type: field.TypeString, Column: systemuser.FieldEmail},
 			systemuser.FieldMobile:    {Type: field.TypeString, Column: systemuser.FieldMobile},
@@ -90,8 +90,8 @@ func (f *SystemUserFilter) Where(p entql.P) {
 	})
 }
 
-// WhereID applies the entql int predicate on the id field.
-func (f *SystemUserFilter) WhereID(p entql.IntP) {
+// WhereID applies the entql string predicate on the id field.
+func (f *SystemUserFilter) WhereID(p entql.StringP) {
 	f.Where(p.Field(systemuser.FieldID))
 }
 
@@ -145,8 +145,8 @@ func (f *SystemUserFilter) WhereRemark(p entql.StringP) {
 	f.Where(p.Field(systemuser.FieldRemark))
 }
 
-// WhereDeptID applies the entql int64 predicate on the dept_id field.
-func (f *SystemUserFilter) WhereDeptID(p entql.Int64P) {
+// WhereDeptID applies the entql string predicate on the dept_id field.
+func (f *SystemUserFilter) WhereDeptID(p entql.StringP) {
 	f.Where(p.Field(systemuser.FieldDeptID))
 }
 

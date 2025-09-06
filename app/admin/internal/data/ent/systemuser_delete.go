@@ -40,7 +40,7 @@ func (_d *SystemUserDelete) ExecX(ctx context.Context) int {
 }
 
 func (_d *SystemUserDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := sqlgraph.NewDeleteSpec(systemuser.Table, sqlgraph.NewFieldSpec(systemuser.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewDeleteSpec(systemuser.Table, sqlgraph.NewFieldSpec(systemuser.FieldID, field.TypeString))
 	if ps := _d.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {

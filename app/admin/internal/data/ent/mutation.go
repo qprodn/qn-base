@@ -32,7 +32,7 @@ type SystemUserMutation struct {
 	config
 	op            Op
 	typ           string
-	id            *int
+	id            *string
 	create_by     *string
 	created_at    *time.Time
 	update_by     *string
@@ -43,8 +43,7 @@ type SystemUserMutation struct {
 	password      *string
 	nickname      *string
 	remark        *string
-	dept_id       *int64
-	adddept_id    *int64
+	dept_id       *string
 	post_ids      *string
 	email         *string
 	mobile        *string
@@ -81,7 +80,7 @@ func newSystemUserMutation(c config, op Op, opts ...systemuserOption) *SystemUse
 }
 
 // withSystemUserID sets the ID field of the mutation.
-func withSystemUserID(id int) systemuserOption {
+func withSystemUserID(id string) systemuserOption {
 	return func(m *SystemUserMutation) {
 		var (
 			err   error
@@ -131,9 +130,15 @@ func (m SystemUserMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of SystemUser entities.
+func (m *SystemUserMutation) SetID(id string) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *SystemUserMutation) ID() (id int, exists bool) {
+func (m *SystemUserMutation) ID() (id string, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -144,12 +149,12 @@ func (m *SystemUserMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *SystemUserMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *SystemUserMutation) IDs(ctx context.Context) ([]string, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int{id}, nil
+			return []string{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -624,13 +629,12 @@ func (m *SystemUserMutation) ResetRemark() {
 }
 
 // SetDeptID sets the "dept_id" field.
-func (m *SystemUserMutation) SetDeptID(i int64) {
-	m.dept_id = &i
-	m.adddept_id = nil
+func (m *SystemUserMutation) SetDeptID(s string) {
+	m.dept_id = &s
 }
 
 // DeptID returns the value of the "dept_id" field in the mutation.
-func (m *SystemUserMutation) DeptID() (r int64, exists bool) {
+func (m *SystemUserMutation) DeptID() (r string, exists bool) {
 	v := m.dept_id
 	if v == nil {
 		return
@@ -641,7 +645,7 @@ func (m *SystemUserMutation) DeptID() (r int64, exists bool) {
 // OldDeptID returns the old "dept_id" field's value of the SystemUser entity.
 // If the SystemUser object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *SystemUserMutation) OldDeptID(ctx context.Context) (v *int64, err error) {
+func (m *SystemUserMutation) OldDeptID(ctx context.Context) (v *string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldDeptID is only allowed on UpdateOne operations")
 	}
@@ -655,28 +659,9 @@ func (m *SystemUserMutation) OldDeptID(ctx context.Context) (v *int64, err error
 	return oldValue.DeptID, nil
 }
 
-// AddDeptID adds i to the "dept_id" field.
-func (m *SystemUserMutation) AddDeptID(i int64) {
-	if m.adddept_id != nil {
-		*m.adddept_id += i
-	} else {
-		m.adddept_id = &i
-	}
-}
-
-// AddedDeptID returns the value that was added to the "dept_id" field in this mutation.
-func (m *SystemUserMutation) AddedDeptID() (r int64, exists bool) {
-	v := m.adddept_id
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
 // ClearDeptID clears the value of the "dept_id" field.
 func (m *SystemUserMutation) ClearDeptID() {
 	m.dept_id = nil
-	m.adddept_id = nil
 	m.clearedFields[systemuser.FieldDeptID] = struct{}{}
 }
 
@@ -689,7 +674,6 @@ func (m *SystemUserMutation) DeptIDCleared() bool {
 // ResetDeptID resets all changes to the "dept_id" field.
 func (m *SystemUserMutation) ResetDeptID() {
 	m.dept_id = nil
-	m.adddept_id = nil
 	delete(m.clearedFields, systemuser.FieldDeptID)
 }
 
@@ -1392,7 +1376,7 @@ func (m *SystemUserMutation) SetField(name string, value ent.Value) error {
 		m.SetRemark(v)
 		return nil
 	case systemuser.FieldDeptID:
-		v, ok := value.(int64)
+		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -1462,9 +1446,6 @@ func (m *SystemUserMutation) SetField(name string, value ent.Value) error {
 // this mutation.
 func (m *SystemUserMutation) AddedFields() []string {
 	var fields []string
-	if m.adddept_id != nil {
-		fields = append(fields, systemuser.FieldDeptID)
-	}
 	if m.addsex != nil {
 		fields = append(fields, systemuser.FieldSex)
 	}
@@ -1479,8 +1460,6 @@ func (m *SystemUserMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *SystemUserMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
-	case systemuser.FieldDeptID:
-		return m.AddedDeptID()
 	case systemuser.FieldSex:
 		return m.AddedSex()
 	case systemuser.FieldStatus:
@@ -1494,13 +1473,6 @@ func (m *SystemUserMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *SystemUserMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case systemuser.FieldDeptID:
-		v, ok := value.(int64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddDeptID(v)
-		return nil
 	case systemuser.FieldSex:
 		v, ok := value.(int8)
 		if !ok {

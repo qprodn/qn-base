@@ -16,7 +16,8 @@ import (
 type SystemUser struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
+	// id
+	ID string `json:"id,omitempty"`
 	// 创建者ID
 	CreateBy *string `json:"create_by,omitempty"`
 	// 创建时间
@@ -38,7 +39,7 @@ type SystemUser struct {
 	// 备注
 	Remark *string `json:"remark,omitempty"`
 	// 部门ID
-	DeptID *int64 `json:"dept_id,omitempty"`
+	DeptID *string `json:"dept_id,omitempty"`
 	// 岗位编号数组
 	PostIds *string `json:"post_ids,omitempty"`
 	// 用户邮箱
@@ -63,9 +64,9 @@ func (*SystemUser) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case systemuser.FieldID, systemuser.FieldDeptID, systemuser.FieldSex, systemuser.FieldStatus:
+		case systemuser.FieldSex, systemuser.FieldStatus:
 			values[i] = new(sql.NullInt64)
-		case systemuser.FieldCreateBy, systemuser.FieldUpdateBy, systemuser.FieldTenantID, systemuser.FieldAccount, systemuser.FieldPassword, systemuser.FieldNickname, systemuser.FieldRemark, systemuser.FieldPostIds, systemuser.FieldEmail, systemuser.FieldMobile, systemuser.FieldAvatar, systemuser.FieldLoginIP:
+		case systemuser.FieldID, systemuser.FieldCreateBy, systemuser.FieldUpdateBy, systemuser.FieldTenantID, systemuser.FieldAccount, systemuser.FieldPassword, systemuser.FieldNickname, systemuser.FieldRemark, systemuser.FieldDeptID, systemuser.FieldPostIds, systemuser.FieldEmail, systemuser.FieldMobile, systemuser.FieldAvatar, systemuser.FieldLoginIP:
 			values[i] = new(sql.NullString)
 		case systemuser.FieldCreatedAt, systemuser.FieldUpdatedAt, systemuser.FieldDeletedAt, systemuser.FieldLoginDate:
 			values[i] = new(sql.NullTime)
@@ -85,11 +86,11 @@ func (_m *SystemUser) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case systemuser.FieldID:
-			value, ok := values[i].(*sql.NullInt64)
-			if !ok {
-				return fmt.Errorf("unexpected type %T for field id", value)
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field id", values[i])
+			} else if value.Valid {
+				_m.ID = value.String
 			}
-			_m.ID = int(value.Int64)
 		case systemuser.FieldCreateBy:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field create_by", values[i])
@@ -159,11 +160,11 @@ func (_m *SystemUser) assignValues(columns []string, values []any) error {
 				*_m.Remark = value.String
 			}
 		case systemuser.FieldDeptID:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
+			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field dept_id", values[i])
 			} else if value.Valid {
-				_m.DeptID = new(int64)
-				*_m.DeptID = value.Int64
+				_m.DeptID = new(string)
+				*_m.DeptID = value.String
 			}
 		case systemuser.FieldPostIds:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -304,7 +305,7 @@ func (_m *SystemUser) String() string {
 	builder.WriteString(", ")
 	if v := _m.DeptID; v != nil {
 		builder.WriteString("dept_id=")
-		builder.WriteString(fmt.Sprintf("%v", *v))
+		builder.WriteString(*v)
 	}
 	builder.WriteString(", ")
 	if v := _m.PostIds; v != nil {

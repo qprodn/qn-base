@@ -11,7 +11,7 @@ import (
 var (
 	// TSystemUserColumns holds the columns for the "t_system_user" table.
 	TSystemUserColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "id", Type: field.TypeString, Unique: true},
 		{Name: "create_by", Type: field.TypeString, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime, Nullable: true},
 		{Name: "update_by", Type: field.TypeString, Nullable: true},
@@ -22,7 +22,7 @@ var (
 		{Name: "password", Type: field.TypeString, Nullable: true},
 		{Name: "nickname", Type: field.TypeString, Nullable: true},
 		{Name: "remark", Type: field.TypeString, Nullable: true},
-		{Name: "dept_id", Type: field.TypeInt64, Nullable: true},
+		{Name: "dept_id", Type: field.TypeString, Nullable: true},
 		{Name: "post_ids", Type: field.TypeString, Nullable: true},
 		{Name: "email", Type: field.TypeString, Nullable: true},
 		{Name: "mobile", Type: field.TypeString, Nullable: true},
@@ -38,6 +38,11 @@ var (
 		Columns:    TSystemUserColumns,
 		PrimaryKey: []*schema.Column{TSystemUserColumns[0]},
 		Indexes: []*schema.Index{
+			{
+				Name:    "systemuser_id",
+				Unique:  false,
+				Columns: []*schema.Column{TSystemUserColumns[0]},
+			},
 			{
 				Name:    "systemuser_tenant_id",
 				Unique:  false,

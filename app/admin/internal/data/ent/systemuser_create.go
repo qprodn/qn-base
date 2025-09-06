@@ -9,6 +9,7 @@ import (
 	"qn-base/app/admin/internal/data/ent/systemuser"
 	"time"
 
+	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -147,13 +148,13 @@ func (_c *SystemUserCreate) SetNillableRemark(v *string) *SystemUserCreate {
 }
 
 // SetDeptID sets the "dept_id" field.
-func (_c *SystemUserCreate) SetDeptID(v int64) *SystemUserCreate {
+func (_c *SystemUserCreate) SetDeptID(v string) *SystemUserCreate {
 	_c.mutation.SetDeptID(v)
 	return _c
 }
 
 // SetNillableDeptID sets the "dept_id" field if the given value is not nil.
-func (_c *SystemUserCreate) SetNillableDeptID(v *int64) *SystemUserCreate {
+func (_c *SystemUserCreate) SetNillableDeptID(v *string) *SystemUserCreate {
 	if v != nil {
 		_c.SetDeptID(*v)
 	}
@@ -272,6 +273,12 @@ func (_c *SystemUserCreate) SetNillableLoginDate(v *time.Time) *SystemUserCreate
 	return _c
 }
 
+// SetID sets the "id" field.
+func (_c *SystemUserCreate) SetID(v string) *SystemUserCreate {
+	_c.mutation.SetID(v)
+	return _c
+}
+
 // Mutation returns the SystemUserMutation object of the builder.
 func (_c *SystemUserCreate) Mutation() *SystemUserMutation {
 	return _c.mutation
@@ -279,7 +286,9 @@ func (_c *SystemUserCreate) Mutation() *SystemUserMutation {
 
 // Save creates the SystemUser in the database.
 func (_c *SystemUserCreate) Save(ctx context.Context) (*SystemUser, error) {
-	_c.defaults()
+	if err := _c.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -306,7 +315,7 @@ func (_c *SystemUserCreate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_c *SystemUserCreate) defaults() {
+func (_c *SystemUserCreate) defaults() error {
 	if _, ok := _c.mutation.Sex(); !ok {
 		v := systemuser.DefaultSex
 		_c.mutation.SetSex(v)
@@ -315,6 +324,7 @@ func (_c *SystemUserCreate) defaults() {
 		v := systemuser.DefaultStatus
 		_c.mutation.SetStatus(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -330,6 +340,11 @@ func (_c *SystemUserCreate) check() error {
 	if _, ok := _c.mutation.Account(); !ok {
 		return &ValidationError{Name: "account", err: errors.New(`ent: missing required field "SystemUser.account"`)}
 	}
+	if v, ok := _c.mutation.ID(); ok {
+		if err := systemuser.IDValidator(v); err != nil {
+			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "SystemUser.id": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -344,8 +359,13 @@ func (_c *SystemUserCreate) sqlSave(ctx context.Context) (*SystemUser, error) {
 		}
 		return nil, err
 	}
-	id := _spec.ID.Value.(int64)
-	_node.ID = int(id)
+	if _spec.ID.Value != nil {
+		if id, ok := _spec.ID.Value.(string); ok {
+			_node.ID = id
+		} else {
+			return nil, fmt.Errorf("unexpected SystemUser.ID type: %T", _spec.ID.Value)
+		}
+	}
 	_c.mutation.id = &_node.ID
 	_c.mutation.done = true
 	return _node, nil
@@ -354,9 +374,13 @@ func (_c *SystemUserCreate) sqlSave(ctx context.Context) (*SystemUser, error) {
 func (_c *SystemUserCreate) createSpec() (*SystemUser, *sqlgraph.CreateSpec) {
 	var (
 		_node = &SystemUser{config: _c.config}
-		_spec = sqlgraph.NewCreateSpec(systemuser.Table, sqlgraph.NewFieldSpec(systemuser.FieldID, field.TypeInt))
+		_spec = sqlgraph.NewCreateSpec(systemuser.Table, sqlgraph.NewFieldSpec(systemuser.FieldID, field.TypeString))
 	)
 	_spec.OnConflict = _c.conflict
+	if id, ok := _c.mutation.ID(); ok {
+		_node.ID = id
+		_spec.ID.Value = id
+	}
 	if value, ok := _c.mutation.CreateBy(); ok {
 		_spec.SetField(systemuser.FieldCreateBy, field.TypeString, value)
 		_node.CreateBy = &value
@@ -398,7 +422,7 @@ func (_c *SystemUserCreate) createSpec() (*SystemUser, *sqlgraph.CreateSpec) {
 		_node.Remark = &value
 	}
 	if value, ok := _c.mutation.DeptID(); ok {
-		_spec.SetField(systemuser.FieldDeptID, field.TypeInt64, value)
+		_spec.SetField(systemuser.FieldDeptID, field.TypeString, value)
 		_node.DeptID = &value
 	}
 	if value, ok := _c.mutation.PostIds(); ok {
@@ -624,7 +648,7 @@ func (u *SystemUserUpsert) ClearRemark() *SystemUserUpsert {
 }
 
 // SetDeptID sets the "dept_id" field.
-func (u *SystemUserUpsert) SetDeptID(v int64) *SystemUserUpsert {
+func (u *SystemUserUpsert) SetDeptID(v string) *SystemUserUpsert {
 	u.Set(systemuser.FieldDeptID, v)
 	return u
 }
@@ -632,12 +656,6 @@ func (u *SystemUserUpsert) SetDeptID(v int64) *SystemUserUpsert {
 // UpdateDeptID sets the "dept_id" field to the value that was provided on create.
 func (u *SystemUserUpsert) UpdateDeptID() *SystemUserUpsert {
 	u.SetExcluded(systemuser.FieldDeptID)
-	return u
-}
-
-// AddDeptID adds v to the "dept_id" field.
-func (u *SystemUserUpsert) AddDeptID(v int64) *SystemUserUpsert {
-	u.Add(systemuser.FieldDeptID, v)
 	return u
 }
 
@@ -803,17 +821,23 @@ func (u *SystemUserUpsert) ClearLoginDate() *SystemUserUpsert {
 	return u
 }
 
-// UpdateNewValues updates the mutable fields using the new values that were set on create.
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
 //	client.SystemUser.Create().
 //		OnConflict(
 //			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(systemuser.FieldID)
+//			}),
 //		).
 //		Exec(ctx)
 func (u *SystemUserUpsertOne) UpdateNewValues() *SystemUserUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
 	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(systemuser.FieldID)
+		}
 		if _, exists := u.create.mutation.CreatedAt(); exists {
 			s.SetIgnore(systemuser.FieldCreatedAt)
 		}
@@ -1013,16 +1037,9 @@ func (u *SystemUserUpsertOne) ClearRemark() *SystemUserUpsertOne {
 }
 
 // SetDeptID sets the "dept_id" field.
-func (u *SystemUserUpsertOne) SetDeptID(v int64) *SystemUserUpsertOne {
+func (u *SystemUserUpsertOne) SetDeptID(v string) *SystemUserUpsertOne {
 	return u.Update(func(s *SystemUserUpsert) {
 		s.SetDeptID(v)
-	})
-}
-
-// AddDeptID adds v to the "dept_id" field.
-func (u *SystemUserUpsertOne) AddDeptID(v int64) *SystemUserUpsertOne {
-	return u.Update(func(s *SystemUserUpsert) {
-		s.AddDeptID(v)
 	})
 }
 
@@ -1238,7 +1255,12 @@ func (u *SystemUserUpsertOne) ExecX(ctx context.Context) {
 }
 
 // Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *SystemUserUpsertOne) ID(ctx context.Context) (id int, err error) {
+func (u *SystemUserUpsertOne) ID(ctx context.Context) (id string, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: SystemUserUpsertOne.ID is not supported by MySQL driver. Use SystemUserUpsertOne.Exec instead")
+	}
 	node, err := u.create.Save(ctx)
 	if err != nil {
 		return id, err
@@ -1247,7 +1269,7 @@ func (u *SystemUserUpsertOne) ID(ctx context.Context) (id int, err error) {
 }
 
 // IDX is like ID, but panics if an error occurs.
-func (u *SystemUserUpsertOne) IDX(ctx context.Context) int {
+func (u *SystemUserUpsertOne) IDX(ctx context.Context) string {
 	id, err := u.ID(ctx)
 	if err != nil {
 		panic(err)
@@ -1302,10 +1324,6 @@ func (_c *SystemUserCreateBulk) Save(ctx context.Context) ([]*SystemUser, error)
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil {
-					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = int(id)
-				}
 				mutation.done = true
 				return nodes[i], nil
 			})
@@ -1392,12 +1410,18 @@ type SystemUserUpsertBulk struct {
 //	client.SystemUser.Create().
 //		OnConflict(
 //			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(systemuser.FieldID)
+//			}),
 //		).
 //		Exec(ctx)
 func (u *SystemUserUpsertBulk) UpdateNewValues() *SystemUserUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
 	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
 		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(systemuser.FieldID)
+			}
 			if _, exists := b.mutation.CreatedAt(); exists {
 				s.SetIgnore(systemuser.FieldCreatedAt)
 			}
@@ -1598,16 +1622,9 @@ func (u *SystemUserUpsertBulk) ClearRemark() *SystemUserUpsertBulk {
 }
 
 // SetDeptID sets the "dept_id" field.
-func (u *SystemUserUpsertBulk) SetDeptID(v int64) *SystemUserUpsertBulk {
+func (u *SystemUserUpsertBulk) SetDeptID(v string) *SystemUserUpsertBulk {
 	return u.Update(func(s *SystemUserUpsert) {
 		s.SetDeptID(v)
-	})
-}
-
-// AddDeptID adds v to the "dept_id" field.
-func (u *SystemUserUpsertBulk) AddDeptID(v int64) *SystemUserUpsertBulk {
-	return u.Update(func(s *SystemUserUpsert) {
-		s.AddDeptID(v)
 	})
 }
 

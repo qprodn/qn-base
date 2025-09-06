@@ -2,24 +2,22 @@ package systemuser
 
 import (
 	"context"
+	"fmt"
 	"qn-base/app/admin/internal/data/idgen"
-	"strconv"
+	"time"
 
-	"github.com/go-kratos/kratos/v2/log"
 	bizsystemuser "qn-base/app/admin/internal/biz/systemuser"
 	"qn-base/app/admin/internal/data/data"
 	"qn-base/app/admin/internal/data/ent"
 	"qn-base/app/admin/internal/data/ent/systemuser"
+
+	"github.com/go-kratos/kratos/v2/log"
 )
 
-// parseIntID 将字符串ID转换为整数ID
-func (s systemUserRepo) parseIntID(id string) int {
-	intID, err := strconv.Atoi(id)
-	if err != nil {
-		s.log.Errorf("failed to parse id %s: %v", id, err)
-		return 0
-	}
-	return intID
+type systemUserRepo struct {
+	data  *data.Data
+	log   *log.Helper
+	idGen *idgen.IDGenerator
 }
 
 // convertToBizUser 将数据库实体转换为业务对象
@@ -29,11 +27,11 @@ func (s systemUserRepo) convertToBizUser(entity *ent.SystemUser) *bizsystemuser.
 	}
 
 	return &bizsystemuser.SystemUser{
-		ID:        entity.ID,
-		CreateBy:  &entity.CreateBy,
-		CreatedAt: &entity.CreatedAt,
-		UpdateBy:  &entity.UpdateBy,
-		UpdatedAt: &entity.UpdatedAt,
+		ID:        &entity.ID,
+		CreateBy:  entity.CreateBy,
+		CreatedAt: entity.CreatedAt,
+		UpdateBy:  entity.UpdateBy,
+		UpdatedAt: entity.UpdatedAt,
 		DeletedAt: entity.DeletedAt,
 		TenantID:  &entity.TenantID,
 		Account:   &entity.Account,
@@ -46,7 +44,7 @@ func (s systemUserRepo) convertToBizUser(entity *ent.SystemUser) *bizsystemuser.
 		Mobile:    entity.Mobile,
 		Sex:       entity.Sex,
 		Avatar:    entity.Avatar,
-		Status:    entity.Status,
+		Status:    &entity.Status,
 		LoginIP:   entity.LoginIP,
 		LoginDate: entity.LoginDate,
 	}
@@ -63,7 +61,7 @@ func NewSystemUserRepo(data *data.Data, idGen *idgen.IDGenerator, logger log.Log
 
 func (s systemUserRepo) Save(ctx context.Context, user *bizsystemuser.SystemUser) (*bizsystemuser.SystemUser, error) {
 	// 创建系统用户
-	create := s.data.DB.SystemUser.Create().
+	create := s.data.DB.SystemUser(ctx).Create().
 		SetAccount(*user.Account).
 		SetNillablePassword(user.Password).
 		SetNillableNickname(user.Nickname).
@@ -98,8 +96,13 @@ func (s systemUserRepo) Save(ctx context.Context, user *bizsystemuser.SystemUser
 }
 
 func (s systemUserRepo) Update(ctx context.Context, user *bizsystemuser.SystemUser) (*bizsystemuser.SystemUser, error) {
+	// 检查ID是否为空
+	if user.ID == nil {
+		return nil, fmt.Errorf("user ID cannot be nil")
+	}
+
 	// 更新系统用户
-	update := s.data.DB.SystemUser.UpdateOneID(user.ID).
+	update := s.data.DB.SystemUser(ctx).UpdateOneID(*user.ID).
 		SetNillablePassword(user.Password).
 		SetNillableNickname(user.Nickname).
 		SetNillableRemark(user.Remark).
@@ -129,15 +132,28 @@ func (s systemUserRepo) Update(ctx context.Context, user *bizsystemuser.SystemUs
 
 func (s systemUserRepo) Delete(ctx context.Context, id string) error {
 	// 删除系统用户（软删除）
-	_, err := s.data.DB.SystemUser.UpdateOneID(s.parseIntID(id)).
-		SetDeletedAt(s.data.Clock.Now()).
+	// 使用 Update 方法加条件，确保只删除未删除的记录
+	affected, err := s.data.DB.SystemUser(ctx).Update().
+		Where(systemuser.ID(id)).
+		Where(systemuser.DeletedAtIsNil()). // 只删除未删除的记录
+		SetDeletedAt(time.Now()).
 		Save(ctx)
-	return err
+
+	if err != nil {
+		return err
+	}
+
+	// 检查是否有记录被影响
+	if affected == 0 {
+		return &ent.NotFoundError{}
+	}
+
+	return nil
 }
 
 func (s systemUserRepo) FindByID(ctx context.Context, id string) (*bizsystemuser.SystemUser, error) {
 	// 根据ID查找系统用户
-	result, err := s.data.DB.SystemUser.Get(ctx, s.parseIntID(id))
+	result, err := s.data.DB.SystemUser(ctx).Get(ctx, id)
 	if err != nil {
 		if ent.IsNotFound(err) {
 			return nil, nil
@@ -151,7 +167,7 @@ func (s systemUserRepo) FindByID(ctx context.Context, id string) (*bizsystemuser
 
 func (s systemUserRepo) FindByUsername(ctx context.Context, username string) (*bizsystemuser.SystemUser, error) {
 	// 根据用户名查找系统用户
-	result, err := s.data.DB.SystemUser.Query().
+	result, err := s.data.DB.SystemUser(ctx).Query().
 		Where(systemuser.Account(username)).
 		Where(systemuser.DeletedAtIsNil()). // 只查找未删除的用户
 		Only(ctx)
@@ -168,7 +184,7 @@ func (s systemUserRepo) FindByUsername(ctx context.Context, username string) (*b
 
 func (s systemUserRepo) ListSystemUsers(ctx context.Context, request *bizsystemuser.ListUserRequest) ([]*bizsystemuser.SystemUser, int32, error) {
 	// 查询系统用户列表
-	query := s.data.DB.SystemUser.Query().
+	query := s.data.DB.SystemUser(ctx).Query().
 		Where(systemuser.DeletedAtIsNil()) // 只查询未删除的用户
 
 	// 根据用户名过滤

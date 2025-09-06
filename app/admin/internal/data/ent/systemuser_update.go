@@ -184,23 +184,16 @@ func (_u *SystemUserUpdate) ClearRemark() *SystemUserUpdate {
 }
 
 // SetDeptID sets the "dept_id" field.
-func (_u *SystemUserUpdate) SetDeptID(v int64) *SystemUserUpdate {
-	_u.mutation.ResetDeptID()
+func (_u *SystemUserUpdate) SetDeptID(v string) *SystemUserUpdate {
 	_u.mutation.SetDeptID(v)
 	return _u
 }
 
 // SetNillableDeptID sets the "dept_id" field if the given value is not nil.
-func (_u *SystemUserUpdate) SetNillableDeptID(v *int64) *SystemUserUpdate {
+func (_u *SystemUserUpdate) SetNillableDeptID(v *string) *SystemUserUpdate {
 	if v != nil {
 		_u.SetDeptID(*v)
 	}
-	return _u
-}
-
-// AddDeptID adds value to the "dept_id" field.
-func (_u *SystemUserUpdate) AddDeptID(v int64) *SystemUserUpdate {
-	_u.mutation.AddDeptID(v)
 	return _u
 }
 
@@ -423,7 +416,7 @@ func (_u *SystemUserUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *Sys
 }
 
 func (_u *SystemUserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
-	_spec := sqlgraph.NewUpdateSpec(systemuser.Table, systemuser.Columns, sqlgraph.NewFieldSpec(systemuser.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewUpdateSpec(systemuser.Table, systemuser.Columns, sqlgraph.NewFieldSpec(systemuser.FieldID, field.TypeString))
 	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -480,13 +473,10 @@ func (_u *SystemUserUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 		_spec.ClearField(systemuser.FieldRemark, field.TypeString)
 	}
 	if value, ok := _u.mutation.DeptID(); ok {
-		_spec.SetField(systemuser.FieldDeptID, field.TypeInt64, value)
-	}
-	if value, ok := _u.mutation.AddedDeptID(); ok {
-		_spec.AddField(systemuser.FieldDeptID, field.TypeInt64, value)
+		_spec.SetField(systemuser.FieldDeptID, field.TypeString, value)
 	}
 	if _u.mutation.DeptIDCleared() {
-		_spec.ClearField(systemuser.FieldDeptID, field.TypeInt64)
+		_spec.ClearField(systemuser.FieldDeptID, field.TypeString)
 	}
 	if value, ok := _u.mutation.PostIds(); ok {
 		_spec.SetField(systemuser.FieldPostIds, field.TypeString, value)
@@ -719,23 +709,16 @@ func (_u *SystemUserUpdateOne) ClearRemark() *SystemUserUpdateOne {
 }
 
 // SetDeptID sets the "dept_id" field.
-func (_u *SystemUserUpdateOne) SetDeptID(v int64) *SystemUserUpdateOne {
-	_u.mutation.ResetDeptID()
+func (_u *SystemUserUpdateOne) SetDeptID(v string) *SystemUserUpdateOne {
 	_u.mutation.SetDeptID(v)
 	return _u
 }
 
 // SetNillableDeptID sets the "dept_id" field if the given value is not nil.
-func (_u *SystemUserUpdateOne) SetNillableDeptID(v *int64) *SystemUserUpdateOne {
+func (_u *SystemUserUpdateOne) SetNillableDeptID(v *string) *SystemUserUpdateOne {
 	if v != nil {
 		_u.SetDeptID(*v)
 	}
-	return _u
-}
-
-// AddDeptID adds value to the "dept_id" field.
-func (_u *SystemUserUpdateOne) AddDeptID(v int64) *SystemUserUpdateOne {
-	_u.mutation.AddDeptID(v)
 	return _u
 }
 
@@ -971,7 +954,7 @@ func (_u *SystemUserUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *
 }
 
 func (_u *SystemUserUpdateOne) sqlSave(ctx context.Context) (_node *SystemUser, err error) {
-	_spec := sqlgraph.NewUpdateSpec(systemuser.Table, systemuser.Columns, sqlgraph.NewFieldSpec(systemuser.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewUpdateSpec(systemuser.Table, systemuser.Columns, sqlgraph.NewFieldSpec(systemuser.FieldID, field.TypeString))
 	id, ok := _u.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "SystemUser.id" for update`)}
@@ -1045,13 +1028,10 @@ func (_u *SystemUserUpdateOne) sqlSave(ctx context.Context) (_node *SystemUser, 
 		_spec.ClearField(systemuser.FieldRemark, field.TypeString)
 	}
 	if value, ok := _u.mutation.DeptID(); ok {
-		_spec.SetField(systemuser.FieldDeptID, field.TypeInt64, value)
-	}
-	if value, ok := _u.mutation.AddedDeptID(); ok {
-		_spec.AddField(systemuser.FieldDeptID, field.TypeInt64, value)
+		_spec.SetField(systemuser.FieldDeptID, field.TypeString, value)
 	}
 	if _u.mutation.DeptIDCleared() {
-		_spec.ClearField(systemuser.FieldDeptID, field.TypeInt64)
+		_spec.ClearField(systemuser.FieldDeptID, field.TypeString)
 	}
 	if value, ok := _u.mutation.PostIds(); ok {
 		_spec.SetField(systemuser.FieldPostIds, field.TypeString, value)

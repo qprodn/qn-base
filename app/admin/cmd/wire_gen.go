@@ -13,6 +13,7 @@ import (
 	"qn-base/app/admin/internal/conf"
 	"qn-base/app/admin/internal/data/data"
 	"qn-base/app/admin/internal/data/db"
+	"qn-base/app/admin/internal/data/idgen"
 	"qn-base/app/admin/internal/data/systemuser"
 	"qn-base/app/admin/internal/server"
 	systemuser3 "qn-base/app/admin/internal/service/systemuser"
@@ -31,7 +32,12 @@ func wireApp(bootstrap *conf.Bootstrap, logger log.Logger) (*kratos.App, func(),
 	if err != nil {
 		return nil, nil, err
 	}
-	systemUserRepo := systemuser.NewSystemUserRepo(dataData, logger)
+	idGenerator, err := idgen.NewIDGenerator(logger)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	systemUserRepo := systemuser.NewSystemUserRepo(dataData, idGenerator, logger)
 	userUsecase := systemuser2.NewUserUsecase(systemUserRepo, logger)
 	userService := systemuser3.NewUserService(logger, userUsecase)
 	grpcServer := server.NewGRPCServer(bootstrap, userService, logger)

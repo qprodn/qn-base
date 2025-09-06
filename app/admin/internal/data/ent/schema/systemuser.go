@@ -1,11 +1,12 @@
 package schema
 
 import (
+	"qn-base/pkg/ent/mixin"
+
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/field"
-	"qn-base/pkg/ent/mixin"
 )
 
 // SystemUser holds the schema definition for the SystemUser entity.
@@ -38,7 +39,7 @@ func (SystemUser) Fields() []ent.Field {
 			Optional().
 			Nillable().
 			Comment("备注"),
-		field.Int64("dept_id").
+		field.String("dept_id").
 			Optional().
 			Nillable().
 			Comment("部门ID"),
@@ -86,6 +87,7 @@ func (SystemUser) Edges() []ent.Edge {
 // Mixin of the SystemUser.
 func (SystemUser) Mixin() []ent.Mixin {
 	return []ent.Mixin{
+		mixin.StringId{},
 		mixin.CreateBy{},
 		mixin.CreateAt{},
 		mixin.UpdateBy{},
