@@ -187,9 +187,50 @@ func (s systemUserRepo) ListSystemUsers(ctx context.Context, request *bizsystemu
 	query := s.data.DB.SystemUser(ctx).Query().
 		Where(systemuser.DeletedAtIsNil()) // 只查询未删除的用户
 
-	// 根据用户名过滤
+	// 根据用户名过滤（模糊匹配）
 	if request.Username != "" {
 		query = query.Where(systemuser.AccountContains(request.Username))
+	}
+
+	// 根据邮箱过滤（模糊匹配）
+	if request.Email != "" {
+		query = query.Where(systemuser.EmailContains(request.Email))
+	}
+
+	// 根据手机号过滤（模糊匹配）
+	if request.Mobile != "" {
+		query = query.Where(systemuser.MobileContains(request.Mobile))
+	}
+
+	// 根据状态过滤
+	if request.Status != nil {
+		query = query.Where(systemuser.Status(*request.Status))
+	}
+
+	// 根据部门ID过滤
+	if request.DeptID != "" {
+		query = query.Where(systemuser.DeptID(request.DeptID))
+	}
+
+	// 根据租户ID过滤
+	if request.TenantID != "" {
+		query = query.Where(systemuser.TenantID(request.TenantID))
+	}
+
+	// 根据创建时间范围过滤
+	if request.StartDate != "" {
+		startTime, err := time.Parse("2006-01-02", request.StartDate)
+		if err == nil {
+			query = query.Where(systemuser.CreatedAtGTE(startTime))
+		}
+	}
+	if request.EndDate != "" {
+		endTime, err := time.Parse("2006-01-02", request.EndDate)
+		if err == nil {
+			// 结束时间设置为当天的23:59:59
+			endTime = endTime.Add(24*time.Hour - time.Second)
+			query = query.Where(systemuser.CreatedAtLTE(endTime))
+		}
 	}
 
 	// 获取总数
@@ -216,4 +257,154 @@ func (s systemUserRepo) ListSystemUsers(ctx context.Context, request *bizsystemu
 	}
 
 	return users, int32(count), nil
+}
+
+// BatchDelete implements batch delete users.
+func (s systemUserRepo) BatchDelete(ctx context.Context, ids []string) (int32, int32, []string, error) {
+	if len(ids) == 0 {
+		return 0, 0, nil, fmt.Errorf("ids cannot be empty")
+	}
+
+	var successCount, failedCount int32
+	var failedIDs []string
+
+	for _, id := range ids {
+		// 软删除单个用户
+		affected, err := s.data.DB.SystemUser(ctx).Update().
+			Where(systemuser.ID(id)).
+			Where(systemuser.DeletedAtIsNil()).
+			SetDeletedAt(time.Now()).
+			Save(ctx)
+
+		if err != nil || affected == 0 {
+			failedCount++
+			failedIDs = append(failedIDs, id)
+		} else {
+			successCount++
+		}
+	}
+
+	return successCount, failedCount, failedIDs, nil
+}
+
+// FindByEmail finds user by email.
+func (s systemUserRepo) FindByEmail(ctx context.Context, email string) (*bizsystemuser.SystemUser, error) {
+	result, err := s.data.DB.SystemUser(ctx).Query().
+		Where(systemuser.Email(email)).
+		Where(systemuser.DeletedAtIsNil()).
+		Only(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return s.convertToBizUser(result), nil
+}
+
+// FindByMobile finds user by mobile.
+func (s systemUserRepo) FindByMobile(ctx context.Context, mobile string) (*bizsystemuser.SystemUser, error) {
+	result, err := s.data.DB.SystemUser(ctx).Query().
+		Where(systemuser.Mobile(mobile)).
+		Where(systemuser.DeletedAtIsNil()).
+		Only(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return s.convertToBizUser(result), nil
+}
+
+// ChangeStatus implements change user status.
+func (s systemUserRepo) ChangeStatus(ctx context.Context, id string, status int8) error {
+	affected, err := s.data.DB.SystemUser(ctx).Update().
+		Where(systemuser.ID(id)).
+		Where(systemuser.DeletedAtIsNil()).
+		SetStatus(status).
+		Save(ctx)
+
+	if err != nil {
+		return err
+	}
+
+	if affected == 0 {
+		return &ent.NotFoundError{}
+	}
+
+	return nil
+}
+
+// GetUserStats implements get user statistics.
+func (s systemUserRepo) GetUserStats(ctx context.Context, tenantID string) (*bizsystemuser.UserStats, error) {
+	query := s.data.DB.SystemUser(ctx).Query().
+		Where(systemuser.DeletedAtIsNil())
+
+	// 如果提供了租户ID，则按租户过滤
+	if tenantID != "" {
+		query = query.Where(systemuser.TenantID(tenantID))
+	}
+
+	// 总用户数
+	totalUsers, err := query.Count(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// 活跃用户数（状态为1）
+	activeUsers, err := query.Where(systemuser.Status(1)).Count(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// 停用用户数（状态为0）
+	inactiveUsers, err := query.Where(systemuser.Status(0)).Count(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// 今天注册的用户数
+	todayStart := time.Now().Truncate(24 * time.Hour)
+	todayEnd := todayStart.Add(24 * time.Hour)
+	todayRegistered, err := query.
+		Where(systemuser.CreatedAtGTE(todayStart)).
+		Where(systemuser.CreatedAtLT(todayEnd)).
+		Count(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// 本周注册的用户数
+	weekStart := todayStart.AddDate(0, 0, -int(todayStart.Weekday()))
+	weekEnd := weekStart.AddDate(0, 0, 7)
+	thisWeekRegistered, err := query.
+		Where(systemuser.CreatedAtGTE(weekStart)).
+		Where(systemuser.CreatedAtLT(weekEnd)).
+		Count(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// 本月注册的用户数
+	monthStart := time.Date(todayStart.Year(), todayStart.Month(), 1, 0, 0, 0, 0, todayStart.Location())
+	monthEnd := monthStart.AddDate(0, 1, 0)
+	thisMonthRegistered, err := query.
+		Where(systemuser.CreatedAtGTE(monthStart)).
+		Where(systemuser.CreatedAtLT(monthEnd)).
+		Count(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return &bizsystemuser.UserStats{
+		TotalUsers:          int32(totalUsers),
+		ActiveUsers:         int32(activeUsers),
+		InactiveUsers:       int32(inactiveUsers),
+		TodayRegistered:     int32(todayRegistered),
+		ThisWeekRegistered:  int32(thisWeekRegistered),
+		ThisMonthRegistered: int32(thisMonthRegistered),
+	}, nil
 }

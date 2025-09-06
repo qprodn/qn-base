@@ -16,7 +16,7 @@ func NewZapLogger(cfg *Config) log.Logger {
 
 	encoderConfig := zap.NewProductionEncoderConfig()
 	encoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
-	encoderConfig.TimeKey = "time"
+	encoderConfig.TimeKey = "times"
 	encoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
 	encoderConfig.EncodeDuration = zapcore.SecondsDurationEncoder
 	encoderConfig.EncodeCaller = zapcore.ShortCallerEncoder

@@ -100,7 +100,7 @@ func (f *SystemUserFilter) WhereCreateBy(p entql.StringP) {
 	f.Where(p.Field(systemuser.FieldCreateBy))
 }
 
-// WhereCreatedAt applies the entql time.Time predicate on the created_at field.
+// WhereCreatedAt applies the entql times.Time predicate on the created_at field.
 func (f *SystemUserFilter) WhereCreatedAt(p entql.TimeP) {
 	f.Where(p.Field(systemuser.FieldCreatedAt))
 }
@@ -110,12 +110,12 @@ func (f *SystemUserFilter) WhereUpdateBy(p entql.StringP) {
 	f.Where(p.Field(systemuser.FieldUpdateBy))
 }
 
-// WhereUpdatedAt applies the entql time.Time predicate on the updated_at field.
+// WhereUpdatedAt applies the entql times.Time predicate on the updated_at field.
 func (f *SystemUserFilter) WhereUpdatedAt(p entql.TimeP) {
 	f.Where(p.Field(systemuser.FieldUpdatedAt))
 }
 
-// WhereDeletedAt applies the entql time.Time predicate on the deleted_at field.
+// WhereDeletedAt applies the entql times.Time predicate on the deleted_at field.
 func (f *SystemUserFilter) WhereDeletedAt(p entql.TimeP) {
 	f.Where(p.Field(systemuser.FieldDeletedAt))
 }
@@ -185,7 +185,7 @@ func (f *SystemUserFilter) WhereLoginIP(p entql.StringP) {
 	f.Where(p.Field(systemuser.FieldLoginIP))
 }
 
-// WhereLoginDate applies the entql time.Time predicate on the login_date field.
+// WhereLoginDate applies the entql times.Time predicate on the login_date field.
 func (f *SystemUserFilter) WhereLoginDate(p entql.TimeP) {
 	f.Where(p.Field(systemuser.FieldLoginDate))
 }

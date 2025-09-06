@@ -19,21 +19,36 @@ var _ = binding.EncodeURL
 
 const _ = http.SupportPackageIsVersion1
 
+const OperationUserBatchDeleteUsers = "/admin.v1.User/BatchDeleteUsers"
+const OperationUserChangeUserStatus = "/admin.v1.User/ChangeUserStatus"
+const OperationUserCheckAccountExists = "/admin.v1.User/CheckAccountExists"
 const OperationUserCreateUser = "/admin.v1.User/CreateUser"
 const OperationUserDeleteUser = "/admin.v1.User/DeleteUser"
 const OperationUserGetUser = "/admin.v1.User/GetUser"
+const OperationUserGetUserStats = "/admin.v1.User/GetUserStats"
 const OperationUserListUsers = "/admin.v1.User/ListUsers"
+const OperationUserResetPassword = "/admin.v1.User/ResetPassword"
 const OperationUserUpdateUser = "/admin.v1.User/UpdateUser"
 
 type UserHTTPServer interface {
+	// BatchDeleteUsers 批量删除用户
+	BatchDeleteUsers(context.Context, *BatchDeleteUsersRequest) (*BatchDeleteUsersReply, error)
+	// ChangeUserStatus 修改用户状态
+	ChangeUserStatus(context.Context, *ChangeUserStatusRequest) (*ChangeUserStatusReply, error)
+	// CheckAccountExists 检查用户名是否存在
+	CheckAccountExists(context.Context, *CheckAccountExistsRequest) (*CheckAccountExistsReply, error)
 	// CreateUser 创建用户
 	CreateUser(context.Context, *CreateUserRequest) (*CreateUserReply, error)
 	// DeleteUser 删除用户
 	DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserReply, error)
 	// GetUser 获取用户信息
 	GetUser(context.Context, *GetUserRequest) (*GetUserReply, error)
+	// GetUserStats 获取用户统计信息
+	GetUserStats(context.Context, *GetUserStatsRequest) (*GetUserStatsReply, error)
 	// ListUsers 用户列表
 	ListUsers(context.Context, *ListUsersRequest) (*ListUsersReply, error)
+	// ResetPassword 重置用户密码
+	ResetPassword(context.Context, *ResetPasswordRequest) (*ResetPasswordReply, error)
 	// UpdateUser 更新用户信息
 	UpdateUser(context.Context, *UpdateUserRequest) (*UpdateUserReply, error)
 }
@@ -45,6 +60,11 @@ func RegisterUserHTTPServer(s *http.Server, srv UserHTTPServer) {
 	r.PUT("/admin/v1/users/{id}", _User_UpdateUser0_HTTP_Handler(srv))
 	r.DELETE("/admin/v1/users/{id}", _User_DeleteUser0_HTTP_Handler(srv))
 	r.GET("/admin/v1/users", _User_ListUsers0_HTTP_Handler(srv))
+	r.DELETE("/admin/v1/users/batch", _User_BatchDeleteUsers0_HTTP_Handler(srv))
+	r.PATCH("/admin/v1/users/{id}/status", _User_ChangeUserStatus0_HTTP_Handler(srv))
+	r.PATCH("/admin/v1/users/{id}/password", _User_ResetPassword0_HTTP_Handler(srv))
+	r.GET("/admin/v1/users/check-account/{account}", _User_CheckAccountExists0_HTTP_Handler(srv))
+	r.GET("/admin/v1/users/stats", _User_GetUserStats0_HTTP_Handler(srv))
 }
 
 func _User_CreateUser0_HTTP_Handler(srv UserHTTPServer) func(ctx http.Context) error {
@@ -157,11 +177,129 @@ func _User_ListUsers0_HTTP_Handler(srv UserHTTPServer) func(ctx http.Context) er
 	}
 }
 
+func _User_BatchDeleteUsers0_HTTP_Handler(srv UserHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in BatchDeleteUsersRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationUserBatchDeleteUsers)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.BatchDeleteUsers(ctx, req.(*BatchDeleteUsersRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*BatchDeleteUsersReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _User_ChangeUserStatus0_HTTP_Handler(srv UserHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ChangeUserStatusRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationUserChangeUserStatus)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ChangeUserStatus(ctx, req.(*ChangeUserStatusRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ChangeUserStatusReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _User_ResetPassword0_HTTP_Handler(srv UserHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ResetPasswordRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationUserResetPassword)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ResetPassword(ctx, req.(*ResetPasswordRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ResetPasswordReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _User_CheckAccountExists0_HTTP_Handler(srv UserHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CheckAccountExistsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationUserCheckAccountExists)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CheckAccountExists(ctx, req.(*CheckAccountExistsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*CheckAccountExistsReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _User_GetUserStats0_HTTP_Handler(srv UserHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetUserStatsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationUserGetUserStats)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetUserStats(ctx, req.(*GetUserStatsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetUserStatsReply)
+		return ctx.Result(200, reply)
+	}
+}
+
 type UserHTTPClient interface {
+	BatchDeleteUsers(ctx context.Context, req *BatchDeleteUsersRequest, opts ...http.CallOption) (rsp *BatchDeleteUsersReply, err error)
+	ChangeUserStatus(ctx context.Context, req *ChangeUserStatusRequest, opts ...http.CallOption) (rsp *ChangeUserStatusReply, err error)
+	CheckAccountExists(ctx context.Context, req *CheckAccountExistsRequest, opts ...http.CallOption) (rsp *CheckAccountExistsReply, err error)
 	CreateUser(ctx context.Context, req *CreateUserRequest, opts ...http.CallOption) (rsp *CreateUserReply, err error)
 	DeleteUser(ctx context.Context, req *DeleteUserRequest, opts ...http.CallOption) (rsp *DeleteUserReply, err error)
 	GetUser(ctx context.Context, req *GetUserRequest, opts ...http.CallOption) (rsp *GetUserReply, err error)
+	GetUserStats(ctx context.Context, req *GetUserStatsRequest, opts ...http.CallOption) (rsp *GetUserStatsReply, err error)
 	ListUsers(ctx context.Context, req *ListUsersRequest, opts ...http.CallOption) (rsp *ListUsersReply, err error)
+	ResetPassword(ctx context.Context, req *ResetPasswordRequest, opts ...http.CallOption) (rsp *ResetPasswordReply, err error)
 	UpdateUser(ctx context.Context, req *UpdateUserRequest, opts ...http.CallOption) (rsp *UpdateUserReply, err error)
 }
 
@@ -171,6 +309,45 @@ type UserHTTPClientImpl struct {
 
 func NewUserHTTPClient(client *http.Client) UserHTTPClient {
 	return &UserHTTPClientImpl{client}
+}
+
+func (c *UserHTTPClientImpl) BatchDeleteUsers(ctx context.Context, in *BatchDeleteUsersRequest, opts ...http.CallOption) (*BatchDeleteUsersReply, error) {
+	var out BatchDeleteUsersReply
+	pattern := "/admin/v1/users/batch"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationUserBatchDeleteUsers))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "DELETE", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *UserHTTPClientImpl) ChangeUserStatus(ctx context.Context, in *ChangeUserStatusRequest, opts ...http.CallOption) (*ChangeUserStatusReply, error) {
+	var out ChangeUserStatusReply
+	pattern := "/admin/v1/users/{id}/status"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationUserChangeUserStatus))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "PATCH", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *UserHTTPClientImpl) CheckAccountExists(ctx context.Context, in *CheckAccountExistsRequest, opts ...http.CallOption) (*CheckAccountExistsReply, error) {
+	var out CheckAccountExistsReply
+	pattern := "/admin/v1/users/check-account/{account}"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationUserCheckAccountExists))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
 }
 
 func (c *UserHTTPClientImpl) CreateUser(ctx context.Context, in *CreateUserRequest, opts ...http.CallOption) (*CreateUserReply, error) {
@@ -212,6 +389,19 @@ func (c *UserHTTPClientImpl) GetUser(ctx context.Context, in *GetUserRequest, op
 	return &out, nil
 }
 
+func (c *UserHTTPClientImpl) GetUserStats(ctx context.Context, in *GetUserStatsRequest, opts ...http.CallOption) (*GetUserStatsReply, error) {
+	var out GetUserStatsReply
+	pattern := "/admin/v1/users/stats"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationUserGetUserStats))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *UserHTTPClientImpl) ListUsers(ctx context.Context, in *ListUsersRequest, opts ...http.CallOption) (*ListUsersReply, error) {
 	var out ListUsersReply
 	pattern := "/admin/v1/users"
@@ -219,6 +409,19 @@ func (c *UserHTTPClientImpl) ListUsers(ctx context.Context, in *ListUsersRequest
 	opts = append(opts, http.Operation(OperationUserListUsers))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *UserHTTPClientImpl) ResetPassword(ctx context.Context, in *ResetPasswordRequest, opts ...http.CallOption) (*ResetPasswordReply, error) {
+	var out ResetPasswordReply
+	pattern := "/admin/v1/users/{id}/password"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationUserResetPassword))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "PATCH", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

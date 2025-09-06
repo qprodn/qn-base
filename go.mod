@@ -5,10 +5,12 @@ go 1.24.5
 require (
 	entgo.io/ent v0.14.5
 	github.com/bytedance/gg v1.1.0
+	github.com/envoyproxy/protoc-gen-validate v1.2.1
 	github.com/go-kratos/kratos/contrib/log/zap/v2 v2.0.0-20250731084034-f7f150c3f139
 	github.com/go-kratos/kratos/v2 v2.8.4
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/golang-jwt/jwt/v5 v5.1.0
+	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.6.0
 	github.com/google/wire v0.6.0
 	github.com/natefinch/lumberjack v2.0.0+incompatible

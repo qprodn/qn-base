@@ -2,8 +2,10 @@ package systemuser
 
 import (
 	"context"
-	adminV1 "qn-base/api/gen/go/admin/v1"
+	"fmt"
 	"qn-base/pkg/lang/ptr"
+	"qn-base/pkg/util/pswd"
+	"qn-base/pkg/util/validator"
 	"time"
 
 	"github.com/go-kratos/kratos/v2/errors"
@@ -15,6 +17,14 @@ var (
 	ErrUserNotFound = errors.NotFound("USER_NOT_FOUND", "user not found")
 	// ErrUserAlreadyExists is user already exists.
 	ErrUserAlreadyExists = errors.Conflict("USER_ALREADY_EXISTS", "user already exists")
+	// ErrEmailAlreadyExists is email already exists.
+	ErrEmailAlreadyExists = errors.Conflict("EMAIL_ALREADY_EXISTS", "email already exists")
+	// ErrMobileAlreadyExists is mobile already exists.
+	ErrMobileAlreadyExists = errors.Conflict("MOBILE_ALREADY_EXISTS", "mobile already exists")
+	// ErrInvalidParameter is invalid parameter.
+	ErrInvalidParameter = errors.BadRequest("INVALID_PARAMETER", "invalid parameter")
+	// ErrPasswordVerifyFailed is password verify failed.
+	ErrPasswordVerifyFailed = errors.Unauthorized("PASSWORD_VERIFY_FAILED", "password verify failed")
 )
 
 // SystemUser is a SystemUser model.
@@ -46,16 +56,45 @@ type SystemUserRepo interface {
 	Save(context.Context, *SystemUser) (*SystemUser, error)
 	Update(context.Context, *SystemUser) (*SystemUser, error)
 	Delete(context.Context, string) error
+	BatchDelete(context.Context, []string) (int32, int32, []string, error)
 	FindByID(context.Context, string) (*SystemUser, error)
 	FindByUsername(context.Context, string) (*SystemUser, error)
+	FindByEmail(context.Context, string) (*SystemUser, error)
+	FindByMobile(context.Context, string) (*SystemUser, error)
 	ListSystemUsers(context.Context, *ListUserRequest) ([]*SystemUser, int32, error)
+	ChangeStatus(context.Context, string, int8) error
+	GetUserStats(context.Context, string) (*UserStats, error)
 }
 
 // ListUserRequest is a list user request.
 type ListUserRequest struct {
-	Page     int32
-	PageSize int32
-	Username string
+	Page      int32
+	PageSize  int32
+	Username  string
+	Email     string
+	Mobile    string
+	Status    *int8
+	DeptID    string
+	StartDate string
+	EndDate   string
+	TenantID  string
+}
+
+// UserStats represents user statistics.
+type UserStats struct {
+	TotalUsers          int32 `json:"total_users"`
+	ActiveUsers         int32 `json:"active_users"`
+	InactiveUsers       int32 `json:"inactive_users"`
+	TodayRegistered     int32 `json:"today_registered"`
+	ThisWeekRegistered  int32 `json:"this_week_registered"`
+	ThisMonthRegistered int32 `json:"this_month_registered"`
+}
+
+// BatchDeleteResult represents batch delete result.
+type BatchDeleteResult struct {
+	SuccessCount int32    `json:"success_count"`
+	FailedCount  int32    `json:"failed_count"`
+	FailedIDs    []string `json:"failed_ids"`
 }
 
 // UserUsecase is a SystemUser usecase.
@@ -72,17 +111,55 @@ func NewUserUsecase(repo SystemUserRepo, logger log.Logger) *UserUsecase {
 // CreateUser creates a SystemUser, and returns the new SystemUser.
 func (uc *UserUsecase) CreateUser(ctx context.Context, u *SystemUser) (*SystemUser, error) {
 	uc.log.WithContext(ctx).Infof("CreateUser: %v", u.Account)
-	if u.Account == nil {
-		return nil, adminV1.ErrorBadRequest("invalid parameter")
+
+	// 参数校验
+	if err := uc.validateCreateUser(u); err != nil {
+		return nil, err
 	}
 
-	// 检查用户是否已存在
+	// 检查用户名是否已存在
 	existingUser, err := uc.repo.FindByUsername(ctx, ptr.From(u.Account))
 	if err != nil && !errors.IsNotFound(err) {
 		return nil, err
 	}
 	if existingUser != nil {
 		return nil, ErrUserAlreadyExists
+	}
+
+	// 检查邮箱是否已存在（如果提供了邮箱）
+	if u.Email != nil && *u.Email != "" {
+		existingEmail, err := uc.repo.FindByEmail(ctx, *u.Email)
+		if err != nil && !errors.IsNotFound(err) {
+			return nil, err
+		}
+		if existingEmail != nil {
+			return nil, ErrEmailAlreadyExists
+		}
+	}
+
+	// 检查手机号是否已存在（如果提供了手机号）
+	if u.Mobile != nil && *u.Mobile != "" {
+		existingMobile, err := uc.repo.FindByMobile(ctx, *u.Mobile)
+		if err != nil && !errors.IsNotFound(err) {
+			return nil, err
+		}
+		if existingMobile != nil {
+			return nil, ErrMobileAlreadyExists
+		}
+	}
+
+	// 密码加密
+	if u.Password != nil && *u.Password != "" {
+		hashedPassword, err := pswd.HashPassword(*u.Password)
+		if err != nil {
+			return nil, fmt.Errorf("密码加密失败: %w", err)
+		}
+		u.Password = &hashedPassword
+	}
+
+	// 设置默认状态
+	if u.Status == nil {
+		u.Status = ptr.Of(int8(1)) // 默认正常状态
 	}
 
 	return uc.repo.Save(ctx, u)
@@ -93,6 +170,9 @@ func (uc *UserUsecase) GetUser(ctx context.Context, id string) (*SystemUser, err
 	uc.log.WithContext(ctx).Infof("GetUser: %s", id)
 	user, err := uc.repo.FindByID(ctx, id)
 	if err != nil {
+		return nil, err
+	}
+	if user == nil {
 		return nil, ErrUserNotFound
 	}
 	return user, nil
@@ -100,7 +180,44 @@ func (uc *UserUsecase) GetUser(ctx context.Context, id string) (*SystemUser, err
 
 // UpdateUser updates a SystemUser.
 func (uc *UserUsecase) UpdateUser(ctx context.Context, u *SystemUser) (*SystemUser, error) {
-	uc.log.WithContext(ctx).Infof("UpdateUser: %s", u.ID)
+	uc.log.WithContext(ctx).Infof("UpdateUser: %s", ptr.From(u.ID))
+
+	// 参数校验
+	if err := uc.validateUpdateUser(u); err != nil {
+		return nil, err
+	}
+
+	// 检查用户是否存在
+	existingUser, err := uc.repo.FindByID(ctx, ptr.From(u.ID))
+	if err != nil {
+		return nil, err
+	}
+	if existingUser == nil {
+		return nil, ErrUserNotFound
+	}
+
+	// 检查邮箱是否被其他用户使用
+	if u.Email != nil && *u.Email != "" && (existingUser.Email == nil || *existingUser.Email != *u.Email) {
+		existingEmail, err := uc.repo.FindByEmail(ctx, *u.Email)
+		if err != nil && !errors.IsNotFound(err) {
+			return nil, err
+		}
+		if existingEmail != nil && *existingEmail.ID != *u.ID {
+			return nil, ErrEmailAlreadyExists
+		}
+	}
+
+	// 检查手机号是否被其他用户使用
+	if u.Mobile != nil && *u.Mobile != "" && (existingUser.Mobile == nil || *existingUser.Mobile != *u.Mobile) {
+		existingMobile, err := uc.repo.FindByMobile(ctx, *u.Mobile)
+		if err != nil && !errors.IsNotFound(err) {
+			return nil, err
+		}
+		if existingMobile != nil && *existingMobile.ID != *u.ID {
+			return nil, ErrMobileAlreadyExists
+		}
+	}
+
 	return uc.repo.Update(ctx, u)
 }
 
@@ -113,5 +230,225 @@ func (uc *UserUsecase) DeleteUser(ctx context.Context, id string) error {
 // ListUsers lists users.
 func (uc *UserUsecase) ListUsers(ctx context.Context, req *ListUserRequest) ([]*SystemUser, int32, error) {
 	uc.log.WithContext(ctx).Infof("ListSystemUsers: page=%d, page_size=%d, username=%s", req.Page, req.PageSize, req.Username)
+
+	// 设置默认分页参数
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+	if req.PageSize <= 0 {
+		req.PageSize = 15
+	}
+	if req.PageSize > 100 {
+		req.PageSize = 100
+	}
+
 	return uc.repo.ListSystemUsers(ctx, req)
+}
+
+// BatchDeleteUsers deletes multiple users.
+func (uc *UserUsecase) BatchDeleteUsers(ctx context.Context, ids []string) (*BatchDeleteResult, error) {
+	uc.log.WithContext(ctx).Infof("BatchDeleteUsers: ids=%v", ids)
+
+	// 参数校验
+	if err := validator.ValidateIDs(ids); err != nil {
+		return nil, errors.BadRequest("INVALID_PARAMETER", err.Error())
+	}
+
+	successCount, failedCount, failedIDs, err := uc.repo.BatchDelete(ctx, ids)
+	if err != nil {
+		return nil, err
+	}
+
+	return &BatchDeleteResult{
+		SuccessCount: successCount,
+		FailedCount:  failedCount,
+		FailedIDs:    failedIDs,
+	}, nil
+}
+
+// ChangeUserStatus changes user status.
+func (uc *UserUsecase) ChangeUserStatus(ctx context.Context, id string, status int8) error {
+	uc.log.WithContext(ctx).Infof("ChangeUserStatus: id=%s, status=%d", id, status)
+
+	// 参数校验
+	if err := validator.ValidateRequiredString(id, "用户ID"); err != nil {
+		return errors.BadRequest("INVALID_PARAMETER", err.Error())
+	}
+	if err := validator.ValidateStatus(status); err != nil {
+		return errors.BadRequest("INVALID_PARAMETER", err.Error())
+	}
+
+	// 检查用户是否存在
+	existingUser, err := uc.repo.FindByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	if existingUser == nil {
+		return ErrUserNotFound
+	}
+
+	return uc.repo.ChangeStatus(ctx, id, status)
+}
+
+// ResetPassword resets user password.
+func (uc *UserUsecase) ResetPassword(ctx context.Context, id, newPassword string) error {
+	uc.log.WithContext(ctx).Infof("ResetPassword: id=%s", id)
+
+	// 参数校验
+	if err := validator.ValidateRequiredString(id, "用户ID"); err != nil {
+		return errors.BadRequest("INVALID_PARAMETER", err.Error())
+	}
+	if err := validator.ValidatePassword(newPassword); err != nil {
+		return errors.BadRequest("INVALID_PARAMETER", err.Error())
+	}
+
+	// 检查用户是否存在
+	existingUser, err := uc.repo.FindByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	if existingUser == nil {
+		return ErrUserNotFound
+	}
+
+	// 密码加密
+	hashedPassword, err := pswd.HashPassword(newPassword)
+	if err != nil {
+		return fmt.Errorf("密码加密失败: %w", err)
+	}
+
+	// 更新密码
+	updateUser := &SystemUser{
+		ID:       &id,
+		Password: &hashedPassword,
+	}
+
+	_, err = uc.repo.Update(ctx, updateUser)
+	return err
+}
+
+// CheckAccountExists checks if account exists.
+func (uc *UserUsecase) CheckAccountExists(ctx context.Context, account string) (bool, error) {
+	uc.log.WithContext(ctx).Infof("CheckAccountExists: account=%s", account)
+
+	// 参数校验
+	if err := validator.ValidateUsername(account); err != nil {
+		return false, errors.BadRequest("INVALID_PARAMETER", err.Error())
+	}
+
+	existingUser, err := uc.repo.FindByUsername(ctx, account)
+	if err != nil && !errors.IsNotFound(err) {
+		return false, err
+	}
+
+	return existingUser != nil, nil
+}
+
+// GetUserStats gets user statistics.
+func (uc *UserUsecase) GetUserStats(ctx context.Context, tenantID string) (*UserStats, error) {
+	uc.log.WithContext(ctx).Infof("GetUserStats: tenantID=%s", tenantID)
+	return uc.repo.GetUserStats(ctx, tenantID)
+}
+
+// validateCreateUser validates create user parameters.
+func (uc *UserUsecase) validateCreateUser(u *SystemUser) error {
+	if u.Account == nil {
+		return errors.BadRequest("INVALID_PARAMETER", "用户名不能为空")
+	}
+	if err := validator.ValidateUsername(*u.Account); err != nil {
+		return errors.BadRequest("INVALID_PARAMETER", err.Error())
+	}
+
+	if u.Password == nil {
+		return errors.BadRequest("INVALID_PARAMETER", "密码不能为空")
+	}
+	if err := validator.ValidatePassword(*u.Password); err != nil {
+		return errors.BadRequest("INVALID_PARAMETER", err.Error())
+	}
+
+	if u.Nickname != nil {
+		if err := validator.ValidateNickname(*u.Nickname); err != nil {
+			return errors.BadRequest("INVALID_PARAMETER", err.Error())
+		}
+	}
+
+	if u.Email != nil {
+		if err := validator.ValidateEmail(*u.Email); err != nil {
+			return errors.BadRequest("INVALID_PARAMETER", err.Error())
+		}
+	}
+
+	if u.Mobile != nil {
+		if err := validator.ValidateMobile(*u.Mobile); err != nil {
+			return errors.BadRequest("INVALID_PARAMETER", err.Error())
+		}
+	}
+
+	if u.Sex != nil {
+		if err := validator.ValidateSex(*u.Sex); err != nil {
+			return errors.BadRequest("INVALID_PARAMETER", err.Error())
+		}
+	}
+
+	if u.Status != nil {
+		if err := validator.ValidateStatus(*u.Status); err != nil {
+			return errors.BadRequest("INVALID_PARAMETER", err.Error())
+		}
+	}
+
+	if u.Remark != nil {
+		if err := validator.ValidateRemark(*u.Remark); err != nil {
+			return errors.BadRequest("INVALID_PARAMETER", err.Error())
+		}
+	}
+
+	return nil
+}
+
+// validateUpdateUser validates update user parameters.
+func (uc *UserUsecase) validateUpdateUser(u *SystemUser) error {
+	if u.ID == nil {
+		return errors.BadRequest("INVALID_PARAMETER", "用户ID不能为空")
+	}
+	if err := validator.ValidateRequiredString(*u.ID, "用户ID"); err != nil {
+		return errors.BadRequest("INVALID_PARAMETER", err.Error())
+	}
+
+	if u.Nickname != nil {
+		if err := validator.ValidateNickname(*u.Nickname); err != nil {
+			return errors.BadRequest("INVALID_PARAMETER", err.Error())
+		}
+	}
+
+	if u.Email != nil {
+		if err := validator.ValidateEmail(*u.Email); err != nil {
+			return errors.BadRequest("INVALID_PARAMETER", err.Error())
+		}
+	}
+
+	if u.Mobile != nil {
+		if err := validator.ValidateMobile(*u.Mobile); err != nil {
+			return errors.BadRequest("INVALID_PARAMETER", err.Error())
+		}
+	}
+
+	if u.Sex != nil {
+		if err := validator.ValidateSex(*u.Sex); err != nil {
+			return errors.BadRequest("INVALID_PARAMETER", err.Error())
+		}
+	}
+
+	if u.Status != nil {
+		if err := validator.ValidateStatus(*u.Status); err != nil {
+			return errors.BadRequest("INVALID_PARAMETER", err.Error())
+		}
+	}
+
+	if u.Remark != nil {
+		if err := validator.ValidateRemark(*u.Remark); err != nil {
+			return errors.BadRequest("INVALID_PARAMETER", err.Error())
+		}
+	}
+
+	return nil
 }

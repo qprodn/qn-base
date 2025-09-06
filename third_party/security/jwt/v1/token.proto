@@ -39,6 +39,6 @@ message Token {
   ];
   int64 expiration_time = 12 [
     json_name = "expiration_time",
-    (gnostic.openapi.v3.property) = {description: "The expiration time of the token."}
+    (gnostic.openapi.v3.property) = {description: "The expiration times of the token."}
   ];
 }

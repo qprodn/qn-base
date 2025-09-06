@@ -72,7 +72,7 @@ message Data {
     // Maximum length of time that the connection can be reused
     int64 connection_max_lifetime = 22 [
       json_name = "connection_max_lifetime",
-      (gnostic.openapi.v3.property) = {description: "The maximum length of time a connection can be reused"}
+      (gnostic.openapi.v3.property) = {description: "The maximum length of times a connection can be reused"}
     ];
     // Maximum number of connections in the connection pool for reading
     int64 connection_max_idle_time = 23 [
@@ -149,7 +149,7 @@ message Data {
     ];
     int64 expiration = 3 [
       json_name = "expiration",
-      (gnostic.openapi.v3.property) = {description: "expiration time"}
+      (gnostic.openapi.v3.property) = {description: "expiration times"}
     ];
     int64 cleanup_interval = 4 [
       json_name = "cleanup_interval",

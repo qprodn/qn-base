@@ -34,13 +34,13 @@ message FileHeader {
   string mod_time_string = 4 [
     json_name = "mod_time_string",
     (gnostic.openapi.v3.property) = {
-      description: "file mod time string",
+      description: "file mod times string",
     }
   ];
   uint32 mod_time = 5 [
     json_name = "mod_time",
     (gnostic.openapi.v3.property) = {
-      description: "file mod time unix",
+      description: "file mod times unix",
     }
   ];
   string content_type = 2 [

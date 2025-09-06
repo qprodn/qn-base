@@ -19,11 +19,16 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	User_CreateUser_FullMethodName = "/admin.v1.User/CreateUser"
-	User_GetUser_FullMethodName    = "/admin.v1.User/GetUser"
-	User_UpdateUser_FullMethodName = "/admin.v1.User/UpdateUser"
-	User_DeleteUser_FullMethodName = "/admin.v1.User/DeleteUser"
-	User_ListUsers_FullMethodName  = "/admin.v1.User/ListUsers"
+	User_CreateUser_FullMethodName         = "/admin.v1.User/CreateUser"
+	User_GetUser_FullMethodName            = "/admin.v1.User/GetUser"
+	User_UpdateUser_FullMethodName         = "/admin.v1.User/UpdateUser"
+	User_DeleteUser_FullMethodName         = "/admin.v1.User/DeleteUser"
+	User_ListUsers_FullMethodName          = "/admin.v1.User/ListUsers"
+	User_BatchDeleteUsers_FullMethodName   = "/admin.v1.User/BatchDeleteUsers"
+	User_ChangeUserStatus_FullMethodName   = "/admin.v1.User/ChangeUserStatus"
+	User_ResetPassword_FullMethodName      = "/admin.v1.User/ResetPassword"
+	User_CheckAccountExists_FullMethodName = "/admin.v1.User/CheckAccountExists"
+	User_GetUserStats_FullMethodName       = "/admin.v1.User/GetUserStats"
 )
 
 // UserClient is the client API for User service.
@@ -42,6 +47,16 @@ type UserClient interface {
 	DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*DeleteUserReply, error)
 	// 用户列表
 	ListUsers(ctx context.Context, in *ListUsersRequest, opts ...grpc.CallOption) (*ListUsersReply, error)
+	// 批量删除用户
+	BatchDeleteUsers(ctx context.Context, in *BatchDeleteUsersRequest, opts ...grpc.CallOption) (*BatchDeleteUsersReply, error)
+	// 修改用户状态
+	ChangeUserStatus(ctx context.Context, in *ChangeUserStatusRequest, opts ...grpc.CallOption) (*ChangeUserStatusReply, error)
+	// 重置用户密码
+	ResetPassword(ctx context.Context, in *ResetPasswordRequest, opts ...grpc.CallOption) (*ResetPasswordReply, error)
+	// 检查用户名是否存在
+	CheckAccountExists(ctx context.Context, in *CheckAccountExistsRequest, opts ...grpc.CallOption) (*CheckAccountExistsReply, error)
+	// 获取用户统计信息
+	GetUserStats(ctx context.Context, in *GetUserStatsRequest, opts ...grpc.CallOption) (*GetUserStatsReply, error)
 }
 
 type userClient struct {
@@ -102,6 +117,56 @@ func (c *userClient) ListUsers(ctx context.Context, in *ListUsersRequest, opts .
 	return out, nil
 }
 
+func (c *userClient) BatchDeleteUsers(ctx context.Context, in *BatchDeleteUsersRequest, opts ...grpc.CallOption) (*BatchDeleteUsersReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(BatchDeleteUsersReply)
+	err := c.cc.Invoke(ctx, User_BatchDeleteUsers_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userClient) ChangeUserStatus(ctx context.Context, in *ChangeUserStatusRequest, opts ...grpc.CallOption) (*ChangeUserStatusReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ChangeUserStatusReply)
+	err := c.cc.Invoke(ctx, User_ChangeUserStatus_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userClient) ResetPassword(ctx context.Context, in *ResetPasswordRequest, opts ...grpc.CallOption) (*ResetPasswordReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ResetPasswordReply)
+	err := c.cc.Invoke(ctx, User_ResetPassword_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userClient) CheckAccountExists(ctx context.Context, in *CheckAccountExistsRequest, opts ...grpc.CallOption) (*CheckAccountExistsReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CheckAccountExistsReply)
+	err := c.cc.Invoke(ctx, User_CheckAccountExists_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userClient) GetUserStats(ctx context.Context, in *GetUserStatsRequest, opts ...grpc.CallOption) (*GetUserStatsReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetUserStatsReply)
+	err := c.cc.Invoke(ctx, User_GetUserStats_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServer is the server API for User service.
 // All implementations must embed UnimplementedUserServer
 // for forward compatibility.
@@ -118,6 +183,16 @@ type UserServer interface {
 	DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserReply, error)
 	// 用户列表
 	ListUsers(context.Context, *ListUsersRequest) (*ListUsersReply, error)
+	// 批量删除用户
+	BatchDeleteUsers(context.Context, *BatchDeleteUsersRequest) (*BatchDeleteUsersReply, error)
+	// 修改用户状态
+	ChangeUserStatus(context.Context, *ChangeUserStatusRequest) (*ChangeUserStatusReply, error)
+	// 重置用户密码
+	ResetPassword(context.Context, *ResetPasswordRequest) (*ResetPasswordReply, error)
+	// 检查用户名是否存在
+	CheckAccountExists(context.Context, *CheckAccountExistsRequest) (*CheckAccountExistsReply, error)
+	// 获取用户统计信息
+	GetUserStats(context.Context, *GetUserStatsRequest) (*GetUserStatsReply, error)
 	mustEmbedUnimplementedUserServer()
 }
 
@@ -142,6 +217,21 @@ func (UnimplementedUserServer) DeleteUser(context.Context, *DeleteUserRequest) (
 }
 func (UnimplementedUserServer) ListUsers(context.Context, *ListUsersRequest) (*ListUsersReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListUsers not implemented")
+}
+func (UnimplementedUserServer) BatchDeleteUsers(context.Context, *BatchDeleteUsersRequest) (*BatchDeleteUsersReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BatchDeleteUsers not implemented")
+}
+func (UnimplementedUserServer) ChangeUserStatus(context.Context, *ChangeUserStatusRequest) (*ChangeUserStatusReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ChangeUserStatus not implemented")
+}
+func (UnimplementedUserServer) ResetPassword(context.Context, *ResetPasswordRequest) (*ResetPasswordReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ResetPassword not implemented")
+}
+func (UnimplementedUserServer) CheckAccountExists(context.Context, *CheckAccountExistsRequest) (*CheckAccountExistsReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CheckAccountExists not implemented")
+}
+func (UnimplementedUserServer) GetUserStats(context.Context, *GetUserStatsRequest) (*GetUserStatsReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUserStats not implemented")
 }
 func (UnimplementedUserServer) mustEmbedUnimplementedUserServer() {}
 func (UnimplementedUserServer) testEmbeddedByValue()              {}
@@ -254,6 +344,96 @@ func _User_ListUsers_Handler(srv interface{}, ctx context.Context, dec func(inte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _User_BatchDeleteUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchDeleteUsersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServer).BatchDeleteUsers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: User_BatchDeleteUsers_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServer).BatchDeleteUsers(ctx, req.(*BatchDeleteUsersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _User_ChangeUserStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ChangeUserStatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServer).ChangeUserStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: User_ChangeUserStatus_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServer).ChangeUserStatus(ctx, req.(*ChangeUserStatusRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _User_ResetPassword_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ResetPasswordRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServer).ResetPassword(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: User_ResetPassword_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServer).ResetPassword(ctx, req.(*ResetPasswordRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _User_CheckAccountExists_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CheckAccountExistsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServer).CheckAccountExists(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: User_CheckAccountExists_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServer).CheckAccountExists(ctx, req.(*CheckAccountExistsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _User_GetUserStats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserStatsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServer).GetUserStats(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: User_GetUserStats_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServer).GetUserStats(ctx, req.(*GetUserStatsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // User_ServiceDesc is the grpc.ServiceDesc for User service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -280,6 +460,26 @@ var User_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListUsers",
 			Handler:    _User_ListUsers_Handler,
+		},
+		{
+			MethodName: "BatchDeleteUsers",
+			Handler:    _User_BatchDeleteUsers_Handler,
+		},
+		{
+			MethodName: "ChangeUserStatus",
+			Handler:    _User_ChangeUserStatus_Handler,
+		},
+		{
+			MethodName: "ResetPassword",
+			Handler:    _User_ResetPassword_Handler,
+		},
+		{
+			MethodName: "CheckAccountExists",
+			Handler:    _User_CheckAccountExists_Handler,
+		},
+		{
+			MethodName: "GetUserStats",
+			Handler:    _User_GetUserStats_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

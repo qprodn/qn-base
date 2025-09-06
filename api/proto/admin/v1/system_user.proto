@@ -6,6 +6,7 @@ package admin.v1;
 
 import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
+import "validate/validate.proto";
 
 option go_package = "qn-base/api/admin/v1;v1";
 option java_multiple_files = true;
@@ -50,6 +51,44 @@ service User {
       get: "/admin/v1/users"
     };
   }
+
+  // 批量删除用户
+  rpc BatchDeleteUsers (BatchDeleteUsersRequest) returns (BatchDeleteUsersReply) {
+    option (google.api.http) = {
+      delete: "/admin/v1/users/batch"
+      body: "*"
+    };
+  }
+
+  // 修改用户状态
+  rpc ChangeUserStatus (ChangeUserStatusRequest) returns (ChangeUserStatusReply) {
+    option (google.api.http) = {
+      patch: "/admin/v1/users/{id}/status"
+      body: "*"
+    };
+  }
+
+  // 重置用户密码
+  rpc ResetPassword (ResetPasswordRequest) returns (ResetPasswordReply) {
+    option (google.api.http) = {
+      patch: "/admin/v1/users/{id}/password"
+      body: "*"
+    };
+  }
+
+  // 检查用户名是否存在
+  rpc CheckAccountExists (CheckAccountExistsRequest) returns (CheckAccountExistsReply) {
+    option (google.api.http) = {
+      get: "/admin/v1/users/check-account/{account}"
+    };
+  }
+
+  // 获取用户统计信息
+  rpc GetUserStats (GetUserStatsRequest) returns (GetUserStatsReply) {
+    option (google.api.http) = {
+      get: "/admin/v1/users/stats"
+    };
+  }
 }
 
 // 用户信息
@@ -76,16 +115,35 @@ message UserInfo {
 
 // 创建用户请求
 message CreateUserRequest {
-  optional string account = 1;
-  optional string password = 2;
-  optional string nickname = 3;
-  optional string remark = 4;
+  string account = 1 [(validate.rules).string = {
+    min_len: 3,
+    max_len: 50,
+    pattern: "^[a-zA-Z0-9_]+$"
+  }];
+  string password = 2 [(validate.rules).string = {
+    min_len: 6,
+    max_len: 128
+  }];
+  optional string nickname = 3 [(validate.rules).string = {
+    max_len: 50
+  }];
+  optional string remark = 4 [(validate.rules).string = {
+    max_len: 255
+  }];
   optional string dept_id = 5;
   optional string post_ids = 6;
-  optional string email = 7;
-  optional string mobile = 8;
-  optional int32 sex = 9;
-  optional string avatar = 10;
+  optional string email = 7 [(validate.rules).string = {
+    pattern: "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+  }];
+  optional string mobile = 8 [(validate.rules).string = {
+    pattern: "^1[3-9]\\d{9}$"
+  }];
+  optional int32 sex = 9 [(validate.rules).int32 = {
+    in: [0, 1]
+  }];
+  optional string avatar = 10 [(validate.rules).string = {
+    max_len: 255
+  }];
   optional string login_ip = 11;
   optional string login_date = 12;
   optional string tenant_id = 15;
@@ -98,7 +156,9 @@ message CreateUserReply {
 
 // 获取用户请求
 message GetUserRequest {
-  optional string id = 1;
+  string id = 1 [(validate.rules).string = {
+    min_len: 1
+  }];
 }
 
 // 获取用户响应
@@ -108,16 +168,32 @@ message GetUserReply {
 
 // 更新用户请求
 message UpdateUserRequest {
-  optional string id = 1;
-  optional string nickname = 2;
-  optional string remark = 3;
+  string id = 1 [(validate.rules).string = {
+    min_len: 1
+  }];
+  optional string nickname = 2 [(validate.rules).string = {
+    max_len: 50
+  }];
+  optional string remark = 3 [(validate.rules).string = {
+    max_len: 255
+  }];
   optional string dept_id = 4;
   optional string post_ids = 5;
-  optional string email = 6;
-  optional string mobile = 7;
-  optional int32 sex = 8;
-  optional string avatar = 9;
-  optional int32 status = 10;
+  optional string email = 6 [(validate.rules).string = {
+    pattern: "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+  }];
+  optional string mobile = 7 [(validate.rules).string = {
+    pattern: "^1[3-9]\\d{9}$"
+  }];
+  optional int32 sex = 8 [(validate.rules).int32 = {
+    in: [0, 1]
+  }];
+  optional string avatar = 9 [(validate.rules).string = {
+    max_len: 255
+  }];
+  optional int32 status = 10 [(validate.rules).int32 = {
+    in: [0, 1]
+  }];
   optional string login_ip = 11;
   optional string login_date = 12;
   optional string tenant_id = 14;
@@ -130,7 +206,9 @@ message UpdateUserReply {
 
 // 删除用户请求
 message DeleteUserRequest {
-  string id = 1;
+  string id = 1 [(validate.rules).string = {
+    min_len: 1
+  }];
 }
 
 // 删除用户响应
@@ -140,13 +218,106 @@ message DeleteUserReply {
 
 // 用户列表请求
 message ListUsersRequest {
-  optional int32 page = 1;
-  optional int32 page_size = 2;
+  optional int32 page = 1 [(validate.rules).int32 = {
+    gte: 1
+  }];
+  optional int32 page_size = 2 [(validate.rules).int32 = {
+    gte: 1,
+    lte: 100
+  }];
   optional string account = 3;
+  optional string email = 4;
+  optional string mobile = 5;
+  optional int32 status = 6 [(validate.rules).int32 = {
+    in: [0, 1]
+  }];
+  optional string dept_id = 7;
+  optional string start_date = 8;
+  optional string end_date = 9;
 }
 
 // 用户列表响应
 message ListUsersReply {
   repeated UserInfo users = 1;
   int32 total = 2;
+}
+
+// 批量删除用户请求
+message BatchDeleteUsersRequest {
+  repeated string ids = 1 [(validate.rules).repeated = {
+    min_items: 1,
+    max_items: 100
+  }];
+}
+
+// 批量删除用户响应
+message BatchDeleteUsersReply {
+  int32 success_count = 1;
+  int32 failed_count = 2;
+  repeated string failed_ids = 3;
+}
+
+// 修改用户状态请求
+message ChangeUserStatusRequest {
+  string id = 1 [(validate.rules).string = {
+    min_len: 1
+  }];
+  int32 status = 2 [(validate.rules).int32 = {
+    in: [0, 1]
+  }];
+}
+
+// 修改用户状态响应
+message ChangeUserStatusReply {
+  bool success = 1;
+}
+
+// 重置密码请求
+message ResetPasswordRequest {
+  string id = 1 [(validate.rules).string = {
+    min_len: 1
+  }];
+  string new_password = 2 [(validate.rules).string = {
+    min_len: 6,
+    max_len: 128
+  }];
+}
+
+// 重置密码响应
+message ResetPasswordReply {
+  bool success = 1;
+}
+
+// 检查用户名是否存在请求
+message CheckAccountExistsRequest {
+  string account = 1 [(validate.rules).string = {
+    min_len: 3,
+    max_len: 50,
+    pattern: "^[a-zA-Z0-9_]+$"
+  }];
+}
+
+// 检查用户名是否存在响应
+message CheckAccountExistsReply {
+  bool exists = 1;
+}
+
+// 获取用户统计信息请求
+message GetUserStatsRequest {
+  optional string tenant_id = 1;
+}
+
+// 用户统计信息
+message UserStats {
+  int32 total_users = 1;
+  int32 active_users = 2;
+  int32 inactive_users = 3;
+  int32 today_registered = 4;
+  int32 this_week_registered = 5;
+  int32 this_month_registered = 6;
+}
+
+// 获取用户统计信息响应
+message GetUserStatsReply {
+  UserStats stats = 1;
 }

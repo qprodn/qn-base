@@ -28,6 +28,31 @@ paths:
                   in: query
                   schema:
                     type: string
+                - name: email
+                  in: query
+                  schema:
+                    type: string
+                - name: mobile
+                  in: query
+                  schema:
+                    type: string
+                - name: status
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: deptId
+                  in: query
+                  schema:
+                    type: string
+                - name: startDate
+                  in: query
+                  schema:
+                    type: string
+                - name: endDate
+                  in: query
+                  schema:
+                    type: string
             responses:
                 "200":
                     description: OK
@@ -53,6 +78,62 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/CreateUserReply'
+    /admin/v1/users/batch:
+        delete:
+            tags:
+                - User
+            description: 批量删除用户
+            operationId: User_BatchDeleteUsers
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/BatchDeleteUsersRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/BatchDeleteUsersReply'
+    /admin/v1/users/check-account/{account}:
+        get:
+            tags:
+                - User
+            description: 检查用户名是否存在
+            operationId: User_CheckAccountExists
+            parameters:
+                - name: account
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CheckAccountExistsReply'
+    /admin/v1/users/stats:
+        get:
+            tags:
+                - User
+            description: 获取用户统计信息
+            operationId: User_GetUserStats
+            parameters:
+                - name: tenantId
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetUserStatsReply'
     /admin/v1/users/{id}:
         get:
             tags:
@@ -114,8 +195,101 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/DeleteUserReply'
+    /admin/v1/users/{id}/password:
+        patch:
+            tags:
+                - User
+            description: 重置用户密码
+            operationId: User_ResetPassword
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ResetPasswordRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ResetPasswordReply'
+    /admin/v1/users/{id}/status:
+        patch:
+            tags:
+                - User
+            description: 修改用户状态
+            operationId: User_ChangeUserStatus
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ChangeUserStatusRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ChangeUserStatusReply'
 components:
     schemas:
+        BatchDeleteUsersReply:
+            type: object
+            properties:
+                successCount:
+                    type: integer
+                    format: int32
+                failedCount:
+                    type: integer
+                    format: int32
+                failedIds:
+                    type: array
+                    items:
+                        type: string
+            description: 批量删除用户响应
+        BatchDeleteUsersRequest:
+            type: object
+            properties:
+                ids:
+                    type: array
+                    items:
+                        type: string
+            description: 批量删除用户请求
+        ChangeUserStatusReply:
+            type: object
+            properties:
+                success:
+                    type: boolean
+            description: 修改用户状态响应
+        ChangeUserStatusRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                status:
+                    type: integer
+                    format: int32
+            description: 修改用户状态请求
+        CheckAccountExistsReply:
+            type: object
+            properties:
+                exists:
+                    type: boolean
+            description: 检查用户名是否存在响应
         CreateUserReply:
             type: object
             properties:
@@ -165,6 +339,12 @@ components:
                 user:
                     $ref: '#/components/schemas/UserInfo'
             description: 获取用户响应
+        GetUserStatsReply:
+            type: object
+            properties:
+                stats:
+                    $ref: '#/components/schemas/UserStats'
+            description: 获取用户统计信息响应
         ListUsersReply:
             type: object
             properties:
@@ -176,6 +356,20 @@ components:
                     type: integer
                     format: int32
             description: 用户列表响应
+        ResetPasswordReply:
+            type: object
+            properties:
+                success:
+                    type: boolean
+            description: 重置密码响应
+        ResetPasswordRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                newPassword:
+                    type: string
+            description: 重置密码请求
         UpdateUserReply:
             type: object
             properties:
@@ -256,5 +450,27 @@ components:
                 updatedBy:
                     type: string
             description: 用户信息
+        UserStats:
+            type: object
+            properties:
+                totalUsers:
+                    type: integer
+                    format: int32
+                activeUsers:
+                    type: integer
+                    format: int32
+                inactiveUsers:
+                    type: integer
+                    format: int32
+                todayRegistered:
+                    type: integer
+                    format: int32
+                thisWeekRegistered:
+                    type: integer
+                    format: int32
+                thisMonthRegistered:
+                    type: integer
+                    format: int32
+            description: 用户统计信息
 tags:
     - name: User

@@ -254,15 +254,15 @@ message Claims {
   ]; // Audience
   int64 exp = 4 [
     json_name = "exp",
-    (gnostic.openapi.v3.property) = {description: "The expiration time of the token."}
+    (gnostic.openapi.v3.property) = {description: "The expiration times of the token."}
   ]; // Expiration Time
   int64 nbf = 5 [
     json_name = "nbf",
-    (gnostic.openapi.v3.property) = {description: "The time before which the token must not be accepted."}
+    (gnostic.openapi.v3.property) = {description: "The times before which the token must not be accepted."}
   ]; // Not Before
   int64 iat = 6 [
     json_name = "iat",
-    (gnostic.openapi.v3.property) = {description: "The time at which the token was issued."}
+    (gnostic.openapi.v3.property) = {description: "The times at which the token was issued."}
   ]; // Issued At
   string jti = 7 [
     json_name = "jti",
