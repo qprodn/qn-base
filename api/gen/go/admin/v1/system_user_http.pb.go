@@ -60,7 +60,7 @@ func RegisterUserHTTPServer(s *http.Server, srv UserHTTPServer) {
 	r.PUT("/admin/v1/users/{id}", _User_UpdateUser0_HTTP_Handler(srv))
 	r.DELETE("/admin/v1/users/{id}", _User_DeleteUser0_HTTP_Handler(srv))
 	r.GET("/admin/v1/users", _User_ListUsers0_HTTP_Handler(srv))
-	r.DELETE("/admin/v1/users/batch", _User_BatchDeleteUsers0_HTTP_Handler(srv))
+	r.POST("/admin/v1/users/batch-delete", _User_BatchDeleteUsers0_HTTP_Handler(srv))
 	r.PATCH("/admin/v1/users/{id}/status", _User_ChangeUserStatus0_HTTP_Handler(srv))
 	r.PATCH("/admin/v1/users/{id}/password", _User_ResetPassword0_HTTP_Handler(srv))
 	r.GET("/admin/v1/users/check-account/{account}", _User_CheckAccountExists0_HTTP_Handler(srv))
@@ -313,11 +313,11 @@ func NewUserHTTPClient(client *http.Client) UserHTTPClient {
 
 func (c *UserHTTPClientImpl) BatchDeleteUsers(ctx context.Context, in *BatchDeleteUsersRequest, opts ...http.CallOption) (*BatchDeleteUsersReply, error) {
 	var out BatchDeleteUsersReply
-	pattern := "/admin/v1/users/batch"
+	pattern := "/admin/v1/users/batch-delete"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationUserBatchDeleteUsers))
 	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "DELETE", path, in, &out, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

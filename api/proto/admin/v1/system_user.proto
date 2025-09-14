@@ -55,7 +55,7 @@ service User {
   // 批量删除用户
   rpc BatchDeleteUsers (BatchDeleteUsersRequest) returns (BatchDeleteUsersReply) {
     option (google.api.http) = {
-      delete: "/admin/v1/users/batch"
+      post: "/admin/v1/users/batch-delete"
       body: "*"
     };
   }

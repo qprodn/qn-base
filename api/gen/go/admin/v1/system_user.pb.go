@@ -1652,7 +1652,7 @@ const file_admin_v1_system_user_proto_rawDesc = "" +
 	"\x14this_week_registered\x18\x05 \x01(\x05R\x12thisWeekRegistered\x122\n" +
 	"\x15this_month_registered\x18\x06 \x01(\x05R\x13thisMonthRegistered\">\n" +
 	"\x11GetUserStatsReply\x12)\n" +
-	"\x05stats\x18\x01 \x01(\v2\x13.admin.v1.UserStatsR\x05stats2\xd8\b\n" +
+	"\x05stats\x18\x01 \x01(\v2\x13.admin.v1.UserStatsR\x05stats2\xdf\b\n" +
 	"\x04User\x12`\n" +
 	"\n" +
 	"CreateUser\x12\x1b.admin.v1.CreateUserRequest\x1a\x19.admin.v1.CreateUserReply\"\x1a\x82\xd3\xe4\x93\x02\x14:\x01*\"\x0f/admin/v1/users\x12Y\n" +
@@ -1661,8 +1661,8 @@ const file_admin_v1_system_user_proto_rawDesc = "" +
 	"UpdateUser\x12\x1b.admin.v1.UpdateUserRequest\x1a\x19.admin.v1.UpdateUserReply\"\x1f\x82\xd3\xe4\x93\x02\x19:\x01*\x1a\x14/admin/v1/users/{id}\x12b\n" +
 	"\n" +
 	"DeleteUser\x12\x1b.admin.v1.DeleteUserRequest\x1a\x19.admin.v1.DeleteUserReply\"\x1c\x82\xd3\xe4\x93\x02\x16*\x14/admin/v1/users/{id}\x12Z\n" +
-	"\tListUsers\x12\x1a.admin.v1.ListUsersRequest\x1a\x18.admin.v1.ListUsersReply\"\x17\x82\xd3\xe4\x93\x02\x11\x12\x0f/admin/v1/users\x12x\n" +
-	"\x10BatchDeleteUsers\x12!.admin.v1.BatchDeleteUsersRequest\x1a\x1f.admin.v1.BatchDeleteUsersReply\" \x82\xd3\xe4\x93\x02\x1a:\x01**\x15/admin/v1/users/batch\x12~\n" +
+	"\tListUsers\x12\x1a.admin.v1.ListUsersRequest\x1a\x18.admin.v1.ListUsersReply\"\x17\x82\xd3\xe4\x93\x02\x11\x12\x0f/admin/v1/users\x12\x7f\n" +
+	"\x10BatchDeleteUsers\x12!.admin.v1.BatchDeleteUsersRequest\x1a\x1f.admin.v1.BatchDeleteUsersReply\"'\x82\xd3\xe4\x93\x02!:\x01*\"\x1c/admin/v1/users/batch-delete\x12~\n" +
 	"\x10ChangeUserStatus\x12!.admin.v1.ChangeUserStatusRequest\x1a\x1f.admin.v1.ChangeUserStatusReply\"&\x82\xd3\xe4\x93\x02 :\x01*2\x1b/admin/v1/users/{id}/status\x12w\n" +
 	"\rResetPassword\x12\x1e.admin.v1.ResetPasswordRequest\x1a\x1c.admin.v1.ResetPasswordReply\"(\x82\xd3\xe4\x93\x02\":\x01*2\x1d/admin/v1/users/{id}/password\x12\x8d\x01\n" +
 	"\x12CheckAccountExists\x12#.admin.v1.CheckAccountExistsRequest\x1a!.admin.v1.CheckAccountExistsReply\"/\x82\xd3\xe4\x93\x02)\x12'/admin/v1/users/check-account/{account}\x12i\n" +

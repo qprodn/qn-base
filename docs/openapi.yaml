@@ -78,8 +78,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/CreateUserReply'
-    /admin/v1/users/batch:
-        delete:
+    /admin/v1/users/batch-delete:
+        post:
             tags:
                 - User
             description: 批量删除用户
